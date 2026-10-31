@@ -162,8 +162,28 @@ public class MainActivity extends Activity {
     }
 
     @Override public void onBackPressed() {
-        if (webView != null && webView.canGoBack()) webView.goBack();
-        else super.onBackPressed();
+        if (webView == null) {
+            return;
+        }
+
+        // First return through WebView navigation history when available.
+        if (webView.canGoBack()) {
+            webView.goBack();
+            return;
+        }
+
+        // The app is a single-page interface: dispatch a back event so the
+        // active screen/dialog can handle it without destroying the Activity.
+        webView.evaluateJavascript(
+                "(function(){"
+                + "try {"
+                + " if (document.activeElement && document.activeElement.blur) document.activeElement.blur();"
+                + " window.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',code:'Escape',keyCode:27,which:27,bubbles:true}));"
+                + " window.dispatchEvent(new CustomEvent('xora:hardwareback'));"
+                + "} catch(e) {}"
+                + "})();",
+                null
+        );
     }
 
     @Override public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
