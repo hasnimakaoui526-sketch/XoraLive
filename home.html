@@ -838,18 +838,17 @@ async function attachVoiceMeeting(result,host){
  if(activeVoiceMeeting?.leave)try{await activeVoiceMeeting.leave()}catch(_){}
  activeVoiceRoom=result.room;activeVoiceMeeting=null;
  const root=document.getElementById('voiceMeetingRoot'),area=document.getElementById('voiceMeetingArea'),list=document.getElementById('voiceRoomList'),panel=document.querySelector('#voiceRoomsScreen .xora-panel');
- root.innerHTML='<div class="xora-muted" style="padding:18px;text-align:center">جارٍ الاتصال بالغرفة الصوتية…</div>';
- area.style.display='flex';list.style.display='none';if(panel)panel.style.display='none';
- try{
-  if(customElements.whenDefined)await customElements.whenDefined('rtk-meeting');
-  const meeting=await window.RealtimeKitClient.init({authToken:result.authToken,defaults:{audio:false,video:false}});
-  await meeting.join();activeVoiceMeeting=meeting;
-  root.innerHTML='';const el=document.createElement('rtk-meeting');el.showSetupScreen=false;el.setAttribute('show-setup-screen','false');el.meeting=meeting;root.appendChild(el);
- }catch(e){
-  try{if(activeVoiceMeeting?.leave)await activeVoiceMeeting.leave()}catch(_){}
-  activeVoiceMeeting=null;root.innerHTML='';area.style.display='none';list.style.display='block';if(panel)panel.style.display='block';activeVoiceRoom=null;throw e;
- }
- /* Once connected, auxiliary seat/chat loading errors must never disconnect the meeting. */
+  /* RealtimeKit runs audio only; do not mount its separate call-screen UI. */
+  root.innerHTML='';root.style.display='none';
+  area.style.display='flex';list.style.display='none';if(panel)panel.style.display='none';
+  try{
+   const meeting=await window.RealtimeKitClient.init({authToken:result.authToken,defaults:{audio:false,video:false}});
+   await meeting.join();activeVoiceMeeting=meeting;
+  }catch(e){
+   try{if(activeVoiceMeeting?.leave)await activeVoiceMeeting.leave()}catch(_){}
+   activeVoiceMeeting=null;root.innerHTML='';area.style.display='none';list.style.display='block';if(panel)panel.style.display='block';activeVoiceRoom=null;throw e;
+  }
+  /* Once connected, auxiliary seat/chat loading errors must never disconnect the meeting. */
  const seats=document.getElementById('voiceSeatsGrid');seats.style.display='flex';
  try{await loadVoiceSeats()}catch(e){console.error('voice seats load',e)}
  try{ensureVoiceSeatsChannel()}catch(e){console.error('voice seats channel',e)}
@@ -1182,4 +1181,22 @@ xoraSupabase.auth.onAuthStateChange(async(event,session)=>{
  #voiceSeatsGrid .seat-avatar{width:33px!important;height:33px!important;flex-basis:33px!important}
  #voiceMeetingRoot{flex-basis:62px!important;height:62px!important;min-height:62px!important;max-height:62px!important}
 }
+</style>
+
+
+<style id="xora-voice-room-single-screen-final">
+#voiceMeetingRoot{display:none!important;width:0!important;height:0!important;min-height:0!important;max-height:0!important;flex:0 0 0!important;overflow:hidden!important}
+#voiceMeetingArea{display:flex!important;flex-direction:column!important;align-items:stretch!important;width:100%!important;height:calc(100dvh - 145px)!important;min-height:0!important;max-height:none!important;flex:1 1 auto!important;overflow:hidden!important;gap:9px!important;padding:8px 7px calc(env(safe-area-inset-bottom) + 12px)!important;box-sizing:border-box!important}
+#voiceSeatsGrid{order:1!important;position:relative!important;display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;direction:rtl!important;align-items:center!important;justify-content:flex-start!important;gap:8px!important;width:100%!important;height:86px!important;min-height:86px!important;max-height:86px!important;flex:0 0 86px!important;overflow-x:auto!important;overflow-y:hidden!important;white-space:nowrap!important;padding:6px 8px!important;margin:0!important;background:#1b1422!important;border:1px solid #76508b!important;border-radius:14px!important;box-sizing:border-box!important}
+#voiceSeatsGrid .voice-seat{display:flex!important;flex:0 0 66px!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:3px!important;width:66px!important;height:70px!important;min-width:66px!important;min-height:70px!important;max-width:66px!important;max-height:70px!important;padding:3px!important;border:1px solid #76508b!important;border-radius:12px!important;background:#261b30!important;color:#fff!important;box-sizing:border-box!important}
+#voiceSeatsGrid .voice-seat.occupied{background:#432650!important;border-color:#d5a0ee!important}
+#voiceSeatsGrid .seat-avatar{display:block!important;width:36px!important;height:36px!important;flex:0 0 36px!important;border-radius:50%!important;object-fit:cover!important}
+#voiceSeatsGrid .seat-user{display:block!important;max-width:60px!important;font-size:9px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+#voiceSeatsGrid .seat-mic{display:block!important;font-size:9px!important}
+#voiceRoomTextChat{order:2!important;display:flex!important;flex:1 1 0!important;width:100%!important;height:auto!important;min-height:180px!important;max-height:none!important;overflow:hidden!important;box-sizing:border-box!important}
+#voiceRoomTextMessages{display:flex!important;flex:1 1 auto!important;min-height:0!important;overflow-y:auto!important}
+#voiceRoomTextForm{display:flex!important;flex:0 0 auto!important;min-height:46px!important}
+#voiceRoomTextInput{display:block!important;flex:1 1 auto!important;min-width:0!important}
+#voiceRoomTextForm button{display:block!important;min-width:58px!important;min-height:42px!important}
+#voiceMeetingArea>button[onclick="leaveVoiceRoom()"]{order:3!important;display:block!important;flex:0 0 auto!important;min-height:42px!important}
 </style>
