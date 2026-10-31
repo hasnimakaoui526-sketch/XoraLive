@@ -7,6 +7,7 @@ on:
       - 'XoraLive_GitHub_Ready.zip'
       - '.github/workflows/build-apk.yml'
       - 'android-fixes/**'
+      - 'home.html'
 permissions:
   contents: write
 jobs:
@@ -26,6 +27,7 @@ jobs:
           test -f android-fixes/AndroidManifest.xml
           cp android-fixes/MainActivity.java app/src/main/java/com/xoralive/app/MainActivity.java
           cp android-fixes/AndroidManifest.xml app/src/main/AndroidManifest.xml
+          cp home.html app/src/main/assets/home.html
           grep -q 'handleXoraAuth' app/src/main/assets/index.html
           grep -q 'bootXoraAuthenticatedApp' app/src/main/assets/home.html
       - name: Set up Java 17
