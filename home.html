@@ -1132,10 +1132,11 @@ xoraSupabase.auth.onAuthStateChange(async(event,session)=>{
 </body></html>
 
 <style id="xora-live-portrait-stage-final">
+/* Keep the broadcast video between the compact top supporters strip and bottom chat bar. */
 #liveRoomScreen,#liveRoomScreen.show{position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;max-width:none!important;max-height:none!important;overflow:hidden!important}
-#liveRoomScreen>#realtimekitRoom{position:absolute!important;inset:0!important;width:100vw!important;height:100dvh!important;min-height:0!important;max-height:none!important;overflow:hidden!important;border-radius:0!important}
-#liveRoomScreen>#realtimekitRoom>rtk-meeting{position:absolute!important;inset:0!important;display:block!important;width:100vw!important;height:100dvh!important;min-height:0!important;max-height:none!important}
-#liveRoomScreen #realtimekitRoom video{width:100%!important;height:100%!important;object-fit:cover!important;object-position:center!important}
+#liveRoomScreen>#realtimekitRoom{position:absolute!important;inset:calc(env(safe-area-inset-top) + 91px) 0 calc(env(safe-area-inset-bottom) + 91px)!important;width:100%!important;height:auto!important;min-height:0!important;max-height:none!important;overflow:hidden!important;border-radius:0!important}
+#liveRoomScreen>#realtimekitRoom>rtk-meeting{position:absolute!important;inset:0!important;display:block!important;width:100%!important;height:100%!important;min-height:0!important;max-height:none!important}
+#liveRoomScreen #realtimekitRoom video{width:100%!important;height:100%!important;object-fit:contain!important;object-position:center!important;background:#000!important}
 </style>
 
 <style id="xora-voice-seats-horizontal-fix">
