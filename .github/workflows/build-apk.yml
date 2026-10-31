@@ -1,4 +1,4 @@
-name: Build Xora Live APK
+name: Build Xora Live APK - fresh rebuild
 on:
   workflow_dispatch:
   push:
