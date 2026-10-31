@@ -143,6 +143,21 @@
 #liveSupporters h4{margin:0 0 7px;color:#e8c98b;font-size:12px}
 #liveGiftPanel{background:linear-gradient(145deg,#24182d,#120e17)!important;border-color:#79578a!important;border-radius:20px!important}
 @media(max-width:390px){#liveSetupScreen{padding-left:12px;padding-right:12px}.live-setup-intro h2{font-size:24px}.live-secure-note{font-size:9px}.live-feature-chips span{font-size:9px;padding:6px 7px}#liveRoomScreen{padding-left:7px!important;padding-right:7px!important}}
+
+/* Full-device viewport sizing: live setup and live room */
+#liveSetupScreen{position:fixed!important;inset:0!important;width:100vw!important;max-width:none!important;height:100vh!important;height:100dvh!important;min-height:100vh!important;min-height:100dvh!important;margin:0!important;border-radius:0!important;overflow-y:auto!important;overscroll-behavior:contain;padding:calc(env(safe-area-inset-top) + 12px) max(16px,env(safe-area-inset-right)) calc(env(safe-area-inset-bottom) + 24px) max(16px,env(safe-area-inset-left))!important}
+#liveSetupScreen.show{display:flex!important;flex-direction:column!important;justify-content:flex-start!important}
+#liveSetupScreen .live-setup-head,#liveSetupScreen .live-setup-intro,#liveSetupScreen .live-setup-card,#liveSetupScreen .live-setup-foot{width:100%;max-width:760px;margin-left:auto;margin-right:auto}
+#liveSetupScreen .live-setup-intro{margin-top:clamp(12px,3vh,30px);margin-bottom:clamp(14px,3vh,26px)}
+#liveSetupScreen .live-setup-card{flex:1 0 auto;display:flex;flex-direction:column;justify-content:flex-start;padding:clamp(14px,3vw,24px);border-radius:26px}
+#liveSetupScreen .live-camera-frame{flex:1 1 auto;min-height:clamp(260px,48dvh,620px);max-height:none;aspect-ratio:auto}
+#liveSetupScreen #cameraPreview{height:100%;min-height:inherit}
+#liveRoomScreen{position:fixed!important;inset:0!important;width:100vw!important;max-width:none!important;height:100vh!important;height:100dvh!important;min-height:100vh!important;min-height:100dvh!important;margin:0!important;border-radius:0!important;overflow:hidden!important;padding:calc(env(safe-area-inset-top) + 10px) max(10px,env(safe-area-inset-right)) calc(env(safe-area-inset-bottom) + 10px) max(10px,env(safe-area-inset-left))!important}
+#liveRoomScreen.show{display:flex!important}
+#liveRoomScreen #realtimekitRoom{width:100%!important;max-width:1100px!important;align-self:center;min-height:0!important;flex:1 1 0!important;height:auto!important}
+#liveRoomScreen #realtimekitRoom rtk-meeting{width:100%!important;height:100%!important;min-height:100%!important}
+@media(min-width:700px){#liveSetupScreen .live-setup-card{max-width:900px}#liveSetupScreen .live-camera-frame{min-height:55dvh}#liveRoomScreen #realtimekitRoom{max-width:1200px!important}}
+@media(max-height:700px){#liveSetupScreen .live-setup-intro{margin-top:6px;margin-bottom:10px}#liveSetupScreen .live-setup-intro h2{font-size:22px;margin:7px 0 3px}#liveSetupScreen .live-setup-intro p{font-size:11px}#liveSetupScreen .live-camera-frame{min-height:38dvh}}
 </style><style>html.xora-auth-check body{visibility:hidden}</style><script>document.documentElement.classList.add("xora-auth-check")</script>
 <style>
 .owner-entry{display:none!important}.owner-entry.ready{display:inline-flex!important}
