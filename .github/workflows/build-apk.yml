@@ -1,4 +1,4 @@
-name: Build Xora Live APK (automatic)
+name: Build Xora Live APK
 on:
   workflow_dispatch:
   push:
@@ -7,7 +7,7 @@ on:
       - 'XoraLive_GitHub_Ready.zip'
       - '.github/workflows/build-apk.yml'
 permissions:
-  contents: read
+  contents: write
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -25,15 +25,18 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      - name: Set up Gradle 8.9
+      - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
       - name: Build debug APK
         run: gradle --no-daemon assembleDebug
-      - name: Upload APK artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: XoraLive-debug-apk
-          path: app/build/outputs/apk/debug/app-debug.apk
-          if-no-files-found: error
+      - name: Save APK into repository
+        run: |
+          mkdir -p downloads
+          cp app/build/outputs/apk/debug/app-debug.apk downloads/XoraLive-debug.apk
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add downloads/XoraLive-debug.apk
+          git commit -m "Add latest Xora Live debug APK" || echo "APK unchanged"
+          git push
