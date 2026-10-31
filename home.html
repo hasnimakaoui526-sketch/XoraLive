@@ -844,7 +844,7 @@ async function attachVoiceMeeting(result,host){
  activeVoiceRoom=result.room;activeVoiceMeeting=null;
  const root=document.getElementById('voiceMeetingRoot'),area=document.getElementById('voiceMeetingArea'),list=document.getElementById('voiceRoomList'),panel=document.querySelector('#voiceRoomsScreen .xora-panel');
   document.getElementById('voiceRoomCurrentTitle').textContent=activeVoiceRoom.title||'غرفة صوتية';
-  document.getElementById('voiceRoomOwnerTools').style.display=activeVoiceRoom.host_user_id===xoraUser?.id?'flex':'none';
+  document.getElementById('voiceRoomOwnerTools').style.display=(await checkOwnerAccess())?'flex':'none';
   const roomArea=document.getElementById('voiceMeetingArea');roomArea.style.backgroundImage=activeVoiceRoom.background_url?'linear-gradient(#100b18aa,#100b18cc),url("'+activeVoiceRoom.background_url+'")':'none';roomArea.style.backgroundSize='cover';roomArea.style.backgroundPosition='center';
   /* RealtimeKit runs audio only; do not mount its separate call-screen UI. */
   root.innerHTML='';root.style.display='none';
