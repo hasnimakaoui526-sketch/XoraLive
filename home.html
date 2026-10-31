@@ -593,6 +593,11 @@
 <section class="screen" id="notificationsScreen"><button class="back" onclick="closeScreen('notificationsScreen')">← الرئيسية</button><h2>الإشعارات</h2><div id="notificationsList"></div></section>
 <section class="screen account-screen" id="accountScreen">
 <div class="account-head"><button class="back" onclick="closeScreen('accountScreen')">← الرئيسية</button><span class="account-kicker">XORA LIVE · MY SPACE</span></div>
+<div class="account-section" id="accountSessionActions">
+ <div class="account-section-title"><b>إدارة الحساب</b><small>تبديل الحساب أو الخروج بأمان</small></div>
+ <button type="button" class="account-login" onclick="switchXoraAccount()">⇄ تبديل الحساب</button>
+ <button type="button" class="account-login" style="border-color:#9b5365;color:#ffd5df" onclick="signOutXora()">↪ تسجيل الخروج</button>
+</div>
 <div class="account-hero"><img class="xora-cover account-cover" id="myCoverPreview" src="https://placehold.co/700x180/302139/e8c98b?text=Xora+Live" alt="غلاف الملف"><div class="account-identity"><div class="account-avatar-wrap"><img class="profile-avatar" id="myAvatar" src="https://placehold.co/120x120/211a2a/e8c98b?text=X" alt="الصورة"></div><div class="account-identity-copy"><div id="myOwnerBadge" class="xora-chip" style="display:none">👑 مالك التطبيق</div><h2>ملفي الشخصي</h2><p>مساحتك وهويتك في Xora Live</p></div></div>
 <div class="account-stats" id="accountStats"></div></div>
 <div class="account-wallet"><div><small>محفظتي · رصيد العملات</small><strong>XONA <span id="profileWalletBalance">…</span></strong><p>رصيدك داخل عالم Xora Live</p></div><div class="account-wallet-actions"><button onclick="showWalletInfo()">سجل المحفظة</button><button onclick="openStore()">＋ شحن العملات</button></div></div>
@@ -988,7 +993,31 @@ function closeAuth(){document.getElementById('authPanel').classList.remove('show
 function authMessage(t){document.getElementById('authStatus').textContent=t}
 async function signUpXora(){const email=document.getElementById('authEmail').value.trim(),password=document.getElementById('authPassword').value,username=document.getElementById('authUsername').value.trim();if(!email||password.length<6||username.length<3){authMessage('أدخل بريداً صحيحاً وكلمة مرور من 6 أحرف واسم مستخدم من 3 أحرف على الأقل.');return}authMessage('جارٍ إنشاء الحساب…');const emailRedirectTo=new URL('home.html',location.href).href;const {data,error}=await xoraSupabase.auth.signUp({email,password,options:{data:{username},emailRedirectTo}});if(error){authMessage(error.message);return}if(data.session){xoraUser=data.user;await refreshXoraProfile();await refreshWalletBalance();closeAuth();toast('تم إنشاء الحساب وتسجيل الدخول');if(document.getElementById('groupChat').classList.contains('show')){loadChatMessages();subscribeChat()}}else authMessage('تم إنشاء الحساب. تحقق من بريدك الإلكتروني لتأكيده ثم سجّل الدخول.')}
 async function signInXora(){const email=document.getElementById('authEmail').value.trim(),password=document.getElementById('authPassword').value;if(!email||!password){authMessage('أدخل البريد وكلمة المرور.');return}authMessage('جارٍ تسجيل الدخول…');const {data,error}=await xoraSupabase.auth.signInWithPassword({email,password});if(error){authMessage(error.message);return}xoraUser=data.user;await refreshXoraProfile();await refreshWalletBalance();closeAuth();toast('مرحباً بعودتك '+(xoraProfile?.username||''));if(document.getElementById('groupChat').classList.contains('show')){loadChatMessages();subscribeChat()}}
-async function signOutXora(){const {error}=await xoraSupabase.auth.signOut();if(error){authMessage('تعذر تسجيل الخروج: '+error.message);return}xoraUser=null;xoraProfile=null;if(xoraChatChannel)await xoraSupabase.removeChannel(xoraChatChannel);if(dmChannel)await xoraSupabase.removeChannel(dmChannel);xoraChatChannel=null;dmChannel=null;location.replace('index.html')}
+async function signOutXora(mode='logout'){
+ if(!xoraUser)return;
+ if(!confirm(mode==='switch'?'سيتم تسجيل الخروج لتتمكن من الدخول بحساب آخر. هل تريد المتابعة؟':'هل تريد تسجيل الخروج من Xora Live؟'))return;
+ try{
+  if(activeVoiceRoom?.id){try{await xoraSupabase.rpc('leave_voice_seat',{p_room_id:activeVoiceRoom.id})}catch(_){}}
+  if(activeVoiceMeeting?.leave){try{await activeVoiceMeeting.leave()}catch(_){}}
+  activeVoiceMeeting=null;activeVoiceRoom=null;
+  stopCameraPreview?.();
+  const {error}=await xoraSupabase.auth.signOut();
+  if(error)throw error;
+  xoraUser=null;xoraProfile=null;
+  xoraChatChannel=null;dmChannel=null;voiceRoomChatChannel=null;voiceRoomsChannel=null;voiceSeatsChannel=null;
+  await xoraSupabase.removeAllChannels();
+  document.querySelectorAll('.screen').forEach(x=>x.classList.remove('show'));
+  document.body.style.overflow='';
+  document.documentElement.classList.remove('xora-auth-check');
+  document.getElementById('authEmail').value='';
+  document.getElementById('authPassword').value='';
+  document.getElementById('authUsername').value='';
+  document.getElementById('authTitle').textContent=mode==='switch'?'تبديل الحساب':'تم تسجيل الخروج';
+  document.getElementById('authStatus').textContent=mode==='switch'?'أدخل بيانات الحساب الآخر لتسجيل الدخول.':'يمكنك تسجيل الدخول مجدداً أو إنشاء حساب جديد.';
+  document.getElementById('authPanel').classList.add('show');
+ }catch(e){authMessage('تعذر تسجيل الخروج: '+(e.message||e))}
+}
+async function switchXoraAccount(){await signOutXora('switch')}
 async function refreshXoraProfile(){if(!xoraUser)return;let {data,error}=await xoraSupabase.from('profiles').select('*').eq('id',xoraUser.id).maybeSingle();if(error){authMessage(error.message);return}if(!data){const fallback='user_'+xoraUser.id.slice(0,8);const username=xoraUser.user_metadata?.username||fallback;const ins=await xoraSupabase.from('profiles').insert({id:xoraUser.id,username}).select().single();data=ins.data;if(ins.error){authMessage(ins.error.message);return}}xoraProfile=data;}
 async function openAccount(){if(!xoraUser){openAuth();return}await refreshXoraProfile();showScreen('accountScreen');document.getElementById('myUsername').value=xoraProfile?.username||'';document.getElementById('myAvatarUrl').value=xoraProfile?.avatar_url||'';document.getElementById('myCoverUrl').value=xoraProfile?.cover_url||'';document.getElementById('myBio').value=xoraProfile?.bio||'';document.getElementById('myAvatar').src=xoraProfile?.avatar_url||'https://placehold.co/120x120/211a2a/e8c98b?text=X';document.getElementById('myCoverPreview').src=xoraProfile?.cover_url||'https://placehold.co/700x180/302139/e8c98b?text=Xora+Live';const f=await xoraSupabase.from('follows').select('*',{count:'exact',head:true}).eq('following_id',xoraUser.id);const g=await xoraSupabase.from('follows').select('*',{count:'exact',head:true}).eq('follower_id',xoraUser.id);document.getElementById('accountStats').textContent='المتابعون: '+(f.count||0)+' · تتابع: '+(g.count||0);const isOwner=xoraUser.id===XORA_OWNER_USER_ID,xp=xoraProfile?.xp||0,level=xoraProfile?.level||1,progress=Math.min(100,Math.round((xp-(level-1)*(level-1)*100)/Math.max(1,(2*level-1)*100)*100));document.getElementById('myProgressCard').innerHTML=isOwner?'<b>👑 مالك التطبيق · المستوى الأعلى</b><div class="xora-level"><i style="width:100%"></i></div><small class="xora-muted">حساب المالك محمي وله أولوية كاملة</small>':'<b>المستوى '+level+' · '+(xoraProfile?.badge||'عضو جديد')+'</b><div class="xora-level"><i style="width:'+progress+'%"></i></div><small class="xora-muted">'+xp.toLocaleString('ar')+' نقطة خبرة · '+(xoraProfile?.vip_until&&new Date(xoraProfile.vip_until)>new Date()?'عضوية VIP مفعلة':'عضوية عادية')+'</small>'}
 async function loadChatMessages(){const log=document.getElementById('groupChatLog');log.innerHTML='';const {data,error}=await xoraSupabase.from('chat_messages').select('id,user_id,content,created_at').order('created_at',{ascending:true}).limit(100);if(error){document.getElementById('chatNote').textContent='تعذر تحميل الرسائل: '+error.message;return}const ids=[...new Set((data||[]).map(m=>m.user_id))];let names={};if(ids.length){const p=await xoraSupabase.from('profiles').select('id,username').in('id',ids);(p.data||[]).forEach(v=>names[v.id]=v.username)}(data||[]).forEach(m=>appendGroupMessage(names[m.user_id]||'مستخدم',m.content,m.user_id===xoraUser?.id,m.id,m.user_id));}
@@ -1056,7 +1085,7 @@ async function ownerLoadPaymentMethods(){const root=document.getElementById('own
 let xoraStreamsChannel=null;
 async function bootXoraAuthenticatedApp(){
   const {data,error}=await xoraSupabase.auth.getSession();
-  if(error||!data.session?.user){location.replace('index.html');return;}
+  if(error||!data.session?.user){document.documentElement.classList.remove('xora-auth-check');document.getElementById('authPanel')?.classList.add('show');document.getElementById('authStatus').textContent='سجّل الدخول أو أنشئ حساباً للمتابعة.';return;}
   xoraUser=data.session.user;
   await refreshXoraProfile();
   await refreshWalletBalance();
@@ -1072,7 +1101,7 @@ async function bootXoraAuthenticatedApp(){
 }
 bootXoraAuthenticatedApp();
 xoraSupabase.auth.onAuthStateChange(async(event,session)=>{
-  if(event==='SIGNED_OUT'||!session?.user){xoraUser=null;xoraProfile=null;location.replace('index.html');return;}
+  if(event==='SIGNED_OUT'||!session?.user){xoraUser=null;xoraProfile=null;document.documentElement.classList.remove('xora-auth-check');document.getElementById('authPanel')?.classList.add('show');return;}
   xoraUser=session.user;
   if(event==='SIGNED_IN'||event==='TOKEN_REFRESHED'){await refreshXoraProfile();await checkOwnerAccess();await refreshMyAppRole();await xoraSupabase.rpc('update_my_presence');}
 });
