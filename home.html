@@ -907,27 +907,31 @@ async function respondLiveGuest(id,accept){const {error}=await xoraSupabase.rpc(
 function subscribeLiveGuestRequests(){if(liveGuestChannel||!liveRoomStreamKey)return;liveGuestChannel=xoraSupabase.channel('live-guests-'+liveRoomStreamKey).on('postgres_changes',{event:'*',schema:'public',table:'live_guest_requests',filter:'stream_id=eq.'+liveRoomStreamKey},async payload=>{if(activeLiveRole==='host'){document.getElementById('liveGuestPanel').classList.add('show');await loadLiveGuestRequests()}const r=payload.new;if(r.guest_user_id===xoraUser?.id&&r.status==='accepted'&&activeLiveRole==='viewer'){try{const result=await xoraLiveRequest({action:'guest_join',stream_id:liveRoomStreamKey});if(activeMeeting?.leave)await activeMeeting.leave();activeMeeting=null;await joinRealtimeKit(result.authToken,'guest',result.stream);toast('انضممت إلى مقاعد الضيوف')}catch(e){toast('تم قبولك لكن تعذر تشغيل مقعد الضيف: '+e.message)}}}).subscribe()}
 async function loadLiveSupporters(){const root=document.getElementById('liveSupporterList');if(!root||!liveRoomStreamKey)return;const {data,error}=await xoraSupabase.rpc('get_stream_top_supporters',{p_stream_id:liveRoomStreamKey,p_limit:10});if(error){root.textContent='تعذر تحميل الداعمين';return}const rows=data||[];if(!rows.length){root.textContent='لا توجد هدايا بعد';return}const ids=rows.map(x=>x.sender_id);const p=await xoraSupabase.from('profiles').select('id,username').in('id',ids);const names=Object.fromEntries((p.data||[]).map(x=>[x.id,x.username]));root.innerHTML='';const hostRoot=document.getElementById('liveHostSupportList');if(hostRoot)hostRoot.innerHTML='';rows.forEach((entry,i)=>{const line=document.createElement('div');line.className='xora-support-row';line.textContent=['🥇','🥈','🥉'][i]||('⭐ '+(i+1));line.textContent+=' '+(names[entry.sender_id]||'مستخدم')+' · '+Number(entry.total_coins).toLocaleString('ar')+' XONA';root.appendChild(line.cloneNode(true));if(hostRoot)hostRoot.appendChild(line)})}
 
-/* Force RealtimeKit's internal participant stage into a true full-height portrait layout */
+/* Size only the outer RealtimeKit meeting host. Do not inject :host rules into every nested
+   component shadow root: that forces participant tiles and internal controls to overlap. */
 function forceXoraPortraitStage(root){
  if(!root)return;
- const css=`:host{display:block!important;position:absolute!important;inset:0!important;width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;min-height:0!important}
- *,*::before,*::after{box-sizing:border-box!important}
- rtk-grid,dyte-grid,[part*="grid"],.dyte-grid,.rtk-grid{display:grid!important;grid-template-columns:minmax(0,1fr)!important;grid-template-rows:minmax(0,1fr)!important;width:100%!important;height:100%!important;min-height:0!important;max-height:100%!important;gap:0!important}
- rtk-participant-tile,dyte-participant-tile,[part*="participant"],.dyte-participant-tile{display:block!important;width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;max-width:none!important;max-height:100%!important;aspect-ratio:auto!important}
- video{display:block!important;width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;max-width:100%!important;max-height:100%!important;object-fit:contain!important;object-position:center center!important;background:#000!important}
- `;
- const visit=node=>{
-  if(!node)return;
-  if(node.shadowRoot&&!node.shadowRoot.querySelector('style[data-xora-portrait]')){
-   const st=document.createElement('style');st.dataset.xoraPortrait='1';st.textContent=css;node.shadowRoot.appendChild(st);
+ const apply=()=>{
+  const meeting=root.querySelector('rtk-meeting');
+  if(!meeting)return false;
+  meeting.style.setProperty('display','block','important');
+  meeting.style.setProperty('position','absolute','important');
+  meeting.style.setProperty('inset','0','important');
+  meeting.style.setProperty('width','100%','important');
+  meeting.style.setProperty('height','100%','important');
+  meeting.style.setProperty('min-height','0','important');
+  if(meeting.shadowRoot&&!meeting.shadowRoot.querySelector('style[data-xora-meeting-host]')){
+   const st=document.createElement('style');
+   st.dataset.xoraMeetingHost='1';
+   st.textContent=':host{display:block!important;position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-height:0!important;max-height:none!important}';
+   meeting.shadowRoot.appendChild(st);
   }
-  if(node.shadowRoot)node.shadowRoot.querySelectorAll('*').forEach(visit);
-  if(node.children)Array.from(node.children).forEach(visit);
+  return true;
  };
- visit(root);
- const observer=new MutationObserver(()=>visit(root));
+ apply();
+ const observer=new MutationObserver(()=>{if(apply())observer.disconnect()});
  observer.observe(root,{childList:true,subtree:true});
- setTimeout(()=>{try{observer.disconnect()}catch(_){}},12000);
+ setTimeout(()=>{try{observer.disconnect()}catch(_){}},8000);
 }
 
 async function joinRealtimeKit(authToken,role,stream){if(!window.RealtimeKitClient)throw new Error('لم يتم تحميل مشغل RealtimeKit. حدّث الصفحة وحاول مجدداً.');if(activeMeeting){try{await activeMeeting.leave()}catch(_){}activeMeeting=null}/* Release the pre-broadcast camera preview before RealtimeKit opens its own media tracks. Keeping both streams alive can lock the phone camera/microphone and cause the broadcast permission error. */if(role==='host'||role==='guest')stopCameraPreview();const meeting=await window.RealtimeKitClient.init({authToken,defaults:{audio:role==='host'||role==='guest',video:role==='host'||role==='guest'}});activeMeeting=meeting;activeLiveRole=role;liveRoomStreamKey=String(stream.id||'');document.getElementById('liveRoomScreen').classList.toggle('host-mode',role==='host');document.getElementById('liveHostCommentStat').textContent='💬 0 تعليق';document.getElementById('liveRoomTitle').textContent=stream.title||'بث مباشر';const root=document.getElementById('realtimekitRoom');root.innerHTML='';const el=document.createElement('rtk-meeting');/* The custom camera preview already ran before this point. Skip the second setup screen so the user enters the live session directly after pressing Start. RealtimeKit UI Kit auto-joins when the component is mounted. */el.setAttribute('show-setup-screen','false');el.showSetupScreen=false;el.meeting=meeting;root.appendChild(el);forceXoraPortraitStage(root);document.getElementById('liveRoomStatus').textContent=role==='host'?'أنت مقدم البث.':role==='guest'?'أنت ضيف في هذا البث.':'أنت تشاهد البث المباشر.';document.getElementById('liveGuestRequestBtn').style.display=role==='viewer'?'block':'none';document.getElementById('liveGuestPanel').classList.toggle('show',role==='host');showScreen('liveRoomScreen');liveRoomHeartTotal=0;document.getElementById('liveRoomHeartCount').textContent='0';toggleLiveGiftPanel(false);await refreshWalletBalance();await loadLiveRoomComments();subscribeLiveRoomComments();subscribeLiveRoomReactions();subscribeLiveGuestRequests();await loadLiveSupporters();await showLiveEntranceEffect(stream);if(role==='host')await loadLiveGuestRequests()}
