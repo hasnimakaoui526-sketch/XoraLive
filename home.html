@@ -1125,3 +1125,61 @@ xoraSupabase.auth.onAuthStateChange(async(event,session)=>{
 #voiceMeetingArea>button[onclick="leaveVoiceRoom()"]{order:4!important;display:block!important;flex:0 0 auto!important;min-height:42px!important}
 @media(max-height:700px){#voiceMeetingArea{height:calc(100dvh - 115px)!important}#voiceSeatsGrid{height:82px!important;min-height:82px!important;max-height:82px!important;flex-basis:82px!important}#voiceSeatsGrid .voice-seat{height:68px!important;min-height:68px!important;max-height:68px!important}#voiceSeatsGrid .seat-avatar{width:34px!important;height:34px!important;flex-basis:34px!important}#voiceMeetingRoot{flex-basis:12dvh!important;height:12dvh!important;min-height:70px!important}#voiceRoomTextChat{flex-basis:36dvh!important;height:36dvh!important;min-height:190px!important}}
 </style>
+
+
+<style id="xora-voice-same-screen-horizontal-seats">
+/* Keep the user inside the same voice-room screen: seats, audio controls, then text chat. */
+#voiceMeetingArea{
+ display:flex!important;flex-direction:column!important;align-items:stretch!important;
+ width:100%!important;height:calc(100dvh - 125px)!important;min-height:0!important;
+ max-height:none!important;flex:1 1 auto!important;overflow-y:auto!important;
+ overflow-x:hidden!important;gap:8px!important;padding:6px 8px calc(env(safe-area-inset-bottom) + 12px)!important;
+ box-sizing:border-box!important
+}
+#voiceSeatsGrid{
+ order:0!important;position:sticky!important;top:0!important;z-index:20!important;
+ display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;
+ direction:rtl!important;align-items:center!important;justify-content:flex-start!important;
+ gap:8px!important;width:100%!important;height:88px!important;min-height:88px!important;
+ max-height:88px!important;flex:0 0 88px!important;overflow-x:auto!important;
+ overflow-y:hidden!important;white-space:nowrap!important;padding:6px 8px!important;
+ margin:0!important;background:#1b1422!important;border:1px solid #76508b!important;
+ border-radius:14px!important;box-sizing:border-box!important
+}
+#voiceSeatsGrid .voice-seat{
+ position:relative!important;display:flex!important;flex:0 0 66px!important;
+ flex-direction:column!important;align-items:center!important;justify-content:center!important;
+ gap:3px!important;width:66px!important;height:72px!important;min-width:66px!important;
+ min-height:72px!important;max-width:66px!important;max-height:72px!important;
+ padding:3px!important;border:1px solid #76508b!important;border-radius:12px!important;
+ background:#261b30!important;color:#fff!important;box-sizing:border-box!important
+}
+#voiceSeatsGrid .voice-seat.occupied{background:#432650!important;border-color:#d5a0ee!important}
+#voiceSeatsGrid .seat-avatar{display:block!important;width:38px!important;height:38px!important;
+ flex:0 0 38px!important;border-radius:50%!important;object-fit:cover!important}
+#voiceSeatsGrid .seat-user{display:block!important;max-width:60px!important;font-size:9px!important;
+ white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+#voiceSeatsGrid .seat-mic{display:block!important;font-size:9px!important}
+#voiceMeetingRoot{
+ order:1!important;position:relative!important;z-index:1!important;
+ flex:0 0 76px!important;width:100%!important;height:76px!important;
+ min-height:76px!important;max-height:76px!important;overflow:hidden!important
+}
+#voiceMeetingRoot rtk-meeting{display:block!important;width:100%!important;height:100%!important;min-height:0!important}
+#voiceRoomTextChat{
+ order:2!important;display:flex!important;flex:1 0 220px!important;
+ width:100%!important;height:auto!important;min-height:220px!important;max-height:none!important;
+ overflow:hidden!important;box-sizing:border-box!important
+}
+#voiceRoomTextMessages{display:flex!important;flex:1 1 auto!important;min-height:0!important;overflow-y:auto!important}
+#voiceRoomTextForm{display:flex!important;flex:0 0 auto!important;min-height:46px!important}
+#voiceRoomTextInput{display:block!important;flex:1 1 auto!important;min-width:0!important}
+#voiceMeetingArea>button[onclick="leaveVoiceRoom()"]{order:3!important;display:block!important;flex:0 0 auto!important;min-height:42px!important}
+@media(max-height:700px){
+ #voiceMeetingArea{height:calc(100dvh - 105px)!important}
+ #voiceSeatsGrid{height:78px!important;min-height:78px!important;max-height:78px!important;flex-basis:78px!important}
+ #voiceSeatsGrid .voice-seat{height:64px!important;min-height:64px!important;max-height:64px!important}
+ #voiceSeatsGrid .seat-avatar{width:33px!important;height:33px!important;flex-basis:33px!important}
+ #voiceMeetingRoot{flex-basis:62px!important;height:62px!important;min-height:62px!important;max-height:62px!important}
+}
+</style>
