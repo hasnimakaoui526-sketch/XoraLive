@@ -206,7 +206,7 @@
 #liveEntranceOverlay{z-index:13!important}
 @media(max-width:520px){#liveRoomScreen #liveRoomComments{max-height:21dvh!important}#liveRoomScreen #liveRoomCommentList{max-height:calc(21dvh - 65px)!important}#liveHostDashboard{max-height:16dvh}}
 
-/* Premium mobile account profile */
+/* Premium mobile account profile */.account-upload-hint{font-size:10px;color:#a99eaf;text-align:left}.account-upload-row{padding:10px 0;border-bottom:1px solid #ffffff0a}.account-upload-row button{min-width:150px;min-height:42px;background:linear-gradient(120deg,#30223b,#24192d);border-color:#654b70}.account-section-title small{display:none}
 .account-screen{background:radial-gradient(ellipse at 50% -8%,#45234f 0,transparent 42%),#0b0810;padding:14px 14px 34px!important}
 .account-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}.account-kicker{font-size:9px;letter-spacing:1.4px;color:#d8b978;font-weight:900}
 .account-hero{position:relative;border:1px solid #4a3652;border-radius:23px;overflow:hidden;background:linear-gradient(160deg,#26192e,#15111c);padding-bottom:15px;box-shadow:0 14px 38px #0005}
@@ -270,12 +270,12 @@
 <div class="account-stats" id="accountStats"></div></div>
 <div class="account-wallet"><div><small>محفظتي · رصيد العملات</small><strong>✦ <span id="profileWalletBalance">…</span></strong><p>رصيدك داخل عالم Xora Live</p></div><div class="account-wallet-actions"><button onclick="showWalletInfo()">سجل المحفظة</button><button onclick="openStore()">＋ شحن العملات</button></div></div>
 <div class="account-section"><div class="account-section-title"><b>تطوير الملف الشخصي</b><small>اجعل حسابك يعبر عنك</small></div>
-<div class="account-upload-row"><button type="button" class="secondary" onclick="document.getElementById('profileCoverFile').click()">🖼️ تغيير الغلاف</button><small id="coverUploadStatus">JPG · PNG · WEBP حتى 5MB</small></div><input id="profileCoverFile" type="file" accept="image/jpeg,image/png,image/webp" hidden onchange="uploadProfileCover(this)">
-<div class="account-upload-row"><button type="button" class="secondary" onclick="document.getElementById('profileAvatarFile').click()">📷 تغيير الصورة</button><small id="avatarUploadStatus">JPG · PNG · WEBP · GIF حتى 5MB</small></div><input id="profileAvatarFile" type="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden onchange="uploadProfileAvatar(this)">
+<div class="account-upload-row"><button type="button" class="secondary" onclick="document.getElementById('profileCoverFile').click()">＋ تغيير الغلاف</button><span class="account-upload-hint">لمسة واحدة لتحديث المظهر</span></div><input id="profileCoverFile" type="file" accept="image/jpeg,image/png,image/webp" hidden onchange="uploadProfileCover(this)">
+<div class="account-upload-row"><button type="button" class="secondary" onclick="document.getElementById('profileAvatarFile').click()">＋ تغيير الصورة الشخصية</button><span class="account-upload-hint">صورتك التي يراها الآخرون</span></div><input id="profileAvatarFile" type="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden onchange="uploadProfileAvatar(this)">
 <label class="account-label" for="myUsername">اسم المستخدم</label><input id="myUsername" maxlength="30" placeholder="اسم المستخدم">
 <label class="account-label" for="myBio">نبذة قصيرة عنك</label><textarea id="myBio" maxlength="300" placeholder="اكتب شيئاً جميلاً عنك"></textarea>
-<details class="account-extra"><summary>إعدادات الصور المتقدمة</summary><label class="account-label" for="myCoverUrl">رابط صورة الغلاف (اختياري)</label><input id="myCoverUrl" maxlength="500" placeholder="https://…"><label class="account-label" for="myAvatarUrl">رابط الصورة الشخصية (اختياري)</label><input id="myAvatarUrl" placeholder="https://…"></details>
-<button class="account-save" onclick="saveMyProfile()">حفظ التعديلات ✓</button><button class="account-login" onclick="openAuth()">🔐 إدارة تسجيل الدخول</button></div>
+<input id="myCoverUrl" type="hidden"><input id="myAvatarUrl" type="hidden">
+<button class="account-save" onclick="saveMyProfile()">حفظ التعديلات ✓</button></div>
 <div id="myProgressCard" class="account-progress"></div><button class="account-store" onclick="openStore()">🛍️ اكتشف المتجر وعضوية VIP</button>
 </section>
 
