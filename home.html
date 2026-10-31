@@ -294,7 +294,62 @@
  #liveRoomScreen #liveRoomComments{max-height:22dvh!important}
 }
 
-</style></head>
+</style>
+<style id="live-mobile-layout-fix">
+/* Mobile live room: portrait, edge-to-edge, and guest requests stay in their own row */
+#liveRoomScreen{
+ position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;min-height:100dvh!important;
+ max-width:none!important;margin:0!important;border:0!important;border-radius:0!important;box-sizing:border-box!important;
+ display:none;flex-direction:column!important;gap:0!important;overflow:hidden!important;
+ padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)!important;background:#050407!important;
+}
+#liveRoomScreen.show{display:flex!important}
+#liveRoomScreen>.live-room-top{position:relative!important;z-index:3!important;flex:0 0 48px!important;min-height:48px!important;
+ width:100%!important;box-sizing:border-box!important;padding:5px 10px!important}
+#liveRoomScreen #realtimekitRoom{
+ position:relative!important;z-index:1!important;display:block!important;flex:1 1 0!important;min-height:0!important;
+ width:100%!important;max-width:none!important;height:0!important;align-self:stretch!important;margin:0!important;
+ border:0!important;border-radius:0!important;overflow:hidden!important;background:#000!important;
+}
+#liveRoomScreen #realtimekitRoom rtk-meeting{display:block!important;width:100%!important;height:100%!important;min-height:0!important;max-height:100%!important}
+#liveRoomScreen #realtimekitRoom video{object-fit:contain!important;max-width:100%!important;max-height:100%!important}
+#liveRoomScreen #liveRoomStatus,#liveRoomScreen>.live-room-statusbar{display:none!important}
+#liveRoomScreen #liveHostDashboard{position:relative!important;z-index:2!important;flex:0 0 auto!important;
+ max-height:8dvh!important;overflow:auto!important;margin:0!important;padding:5px 9px!important;border-radius:0!important}
+#liveRoomScreen #liveRoomReactions{position:relative!important;z-index:3!important;flex:0 0 auto!important;
+ width:100%!important;box-sizing:border-box!important;justify-content:space-around!important;margin:0!important;
+ padding:6px 8px!important;border-radius:0!important;border-left:0!important;border-right:0!important}
+#liveRoomScreen #liveRoomReactions button{min-height:38px!important;padding:7px 10px!important}
+#liveRoomScreen #liveRoomActivity{flex:0 0 auto!important;min-height:15px!important;text-align:center!important;padding:1px 6px!important}
+#liveRoomScreen #liveGuestRequestBtn{position:relative!important;z-index:3!important;display:block!important;flex:0 0 auto!important;
+ width:calc(100% - 16px)!important;min-height:38px!important;margin:4px 8px!important;padding:7px 10px!important}
+#liveRoomScreen #liveGuestPanel,
+#liveRoomScreen #liveGuestPanel.show{
+ position:relative!important;inset:auto!important;z-index:4!important;flex:0 1 auto!important;
+ width:calc(100% - 16px)!important;max-height:14dvh!important;min-height:0!important;overflow:auto!important;
+ box-sizing:border-box!important;margin:3px 8px!important;padding:7px 9px!important;border-radius:12px!important;
+}
+#liveRoomScreen #liveGuestPanel:not(.show){display:none!important}
+#liveRoomScreen #liveRoomComments{
+ position:relative!important;z-index:3!important;flex:0 0 18dvh!important;min-height:105px!important;max-height:18dvh!important;
+ width:100%!important;box-sizing:border-box!important;margin:0!important;border-radius:14px 14px 0 0!important;
+}
+#liveRoomScreen #liveRoomCommentList{flex:1 1 auto!important;min-height:0!important;max-height:none!important;overflow:auto!important}
+#liveRoomScreen #liveRoomCommentForm{flex:0 0 auto!important}
+#liveRoomScreen #liveGiftPanel{z-index:20!important;max-height:70dvh!important;overflow:auto!important}
+@media(max-height:650px){
+ #liveRoomScreen>.live-room-top{flex-basis:42px!important;min-height:42px!important}
+ #liveRoomScreen #liveHostDashboard{max-height:6dvh!important}
+ #liveRoomScreen #liveRoomComments{flex-basis:16dvh!important;min-height:82px!important;max-height:16dvh!important}
+ #liveRoomScreen #liveGuestPanel.show{max-height:11dvh!important}
+}
+@media(orientation:landscape) and (max-height:520px){
+ #liveRoomScreen #realtimekitRoom{flex:1 1 0!important}
+ #liveRoomScreen #liveHostDashboard{display:none!important}
+ #liveRoomScreen #liveRoomComments{flex-basis:20dvh!important}
+}
+</style>
+</head>
 <body><main class="app">
 <header class="top"><div class="brand">Xora <span>live</span></div><div class="actions"><button class="wallet" onclick="showWalletInfo()">XONA <span id="walletCoins">…</span></button><button class="iconbtn" aria-label="الرسائل" onclick="openInbox()">✉</button><button class="iconbtn" aria-label="الإشعارات" onclick="openNotifications()">♧</button><button id="modEntry" class="iconbtn mod-entry" aria-label="مركز الإشراف" title="مركز الإشراف" onclick="openModerationPanel()">🛡</button><button id="ownerEntry" class="iconbtn owner-entry" aria-label="لوحة المالك" title="لوحة المالك" onclick="openOwnerPanel()">♛</button></div></header>
 <section class="hero"><div class="eyebrow">عالمك… على الهواء</div><h1>اكتشف عالماً مباشراً</h1><p>لحظات حية وتجارب تجمعنا في مكان واحد</p><div class="live-pill"><i class="dot"></i> <b id="liveCount">0</b> بث مباشر الآن</div></section>
