@@ -75,9 +75,9 @@ const XORA_SUPABASE_KEY='sb_publishable_i2xRgMPVtArG5viruh-egg_3Ou1R0Vb';
 const xoraAuthClient=window.supabase.createClient(XORA_SUPABASE_URL,XORA_SUPABASE_KEY,{
   auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}
 });
+const XORA_PUBLIC_URL='https://xora-live-web.hasnimakaoui526.workers.dev/';
 function xoraRedirectUrl(file){
-  if(location.protocol==='http:'||location.protocol==='https:') return new URL(file,location.href).href;
-  return undefined;
+  return new URL(file,XORA_PUBLIC_URL).href;
 }
 function xoraAuthNotice(message,isError=false){
   const n=document.getElementById('notice');
