@@ -349,6 +349,88 @@
  #liveRoomScreen #liveRoomComments{flex-basis:20dvh!important}
 }
 </style>
+
+<style id="xora-live-portrait-layout-v2">
+/* Rebuild live room as a phone-first portrait page; no overlapping layers */
+#liveRoomScreen{
+ position:fixed!important;inset:0!important;width:100%!important;max-width:none!important;
+ height:100vh!important;height:100dvh!important;min-height:0!important;
+ margin:0!important;padding:calc(env(safe-area-inset-top) + 6px) 10px calc(env(safe-area-inset-bottom) + 8px)!important;
+ display:none;flex-direction:column!important;align-items:stretch!important;gap:7px!important;
+ overflow-x:hidden!important;overflow-y:auto!important;overscroll-behavior:contain;
+ background:#09070d!important;z-index:100!important;
+}
+#liveRoomScreen.show{display:flex!important}
+#liveRoomScreen>*{min-width:0;max-width:100%}
+#liveRoomScreen>.live-room-top{
+ position:relative!important;inset:auto!important;z-index:2!important;flex:0 0 42px!important;
+ min-height:42px!important;height:42px!important;display:flex!important;align-items:center!important;
+ justify-content:space-between!important;gap:7px!important;margin:0!important;padding:0 2px!important;
+}
+#liveRoomScreen .live-room-heading{min-width:0;flex:1;text-align:center}
+#liveRoomScreen #liveRoomTitle{font-size:clamp(14px,4vw,18px)!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:0!important}
+#liveRoomScreen #realtimekitRoom{
+ position:relative!important;inset:auto!important;flex:0 0 42dvh!important;
+ width:100%!important;height:42dvh!important;min-height:220px!important;max-height:48dvh!important;
+ margin:0!important;border-radius:14px!important;overflow:hidden!important;background:#050407!important;
+}
+#liveRoomScreen #realtimekitRoom rtk-meeting{
+ display:block!important;width:100%!important;height:100%!important;min-height:0!important;max-height:100%!important;
+}
+#liveRoomScreen #realtimekitRoom video{max-width:100%!important;max-height:100%!important;object-fit:contain!important}
+#liveRoomScreen #liveHostDashboard{display:none!important}
+#liveRoomScreen .live-room-statusbar{
+ position:static!important;inset:auto!important;flex:0 0 auto!important;min-height:22px!important;
+ max-height:34px!important;overflow:hidden!important;display:flex!important;align-items:center!important;
+ gap:6px!important;margin:0!important;padding:2px 4px!important;
+}
+#liveRoomScreen #liveRoomStatus{margin:0!important;padding:0!important;max-height:30px!important;overflow:hidden!important;font-size:11px!important}
+#liveRoomScreen #liveRoomReactions{
+ position:static!important;inset:auto!important;display:flex!important;flex:0 0 42px!important;
+ height:42px!important;min-height:42px!important;align-items:center!important;gap:7px!important;margin:0!important;
+}
+#liveRoomScreen #liveRoomReactions button{height:40px!important;min-width:0!important;padding:7px 9px!important}
+#liveRoomScreen #liveRoomHeartCount,#liveRoomScreen #liveRoomWallet{font-size:10px!important}
+#liveRoomScreen #liveRoomActivity{position:static!important;flex:0 0 auto!important;min-height:16px!important;max-height:22px!important;overflow:hidden!important;margin:0!important}
+#liveRoomScreen #liveEntranceOverlay{position:absolute!important;top:28%!important;left:8%!important;right:8%!important;z-index:30!important}
+#liveRoomScreen #liveGuestRequestBtn{
+ position:static!important;inset:auto!important;display:block!important;width:100%!important;
+ flex:0 0 auto!important;min-height:36px!important;height:auto!important;margin:0!important;padding:8px 10px!important;
+}
+#liveRoomScreen #liveGuestPanel{
+ position:static!important;inset:auto!important;display:none;flex:0 0 auto!important;
+ width:100%!important;max-height:12dvh!important;overflow:auto!important;margin:0!important;
+}
+#liveRoomScreen #liveGuestPanel.show{display:block!important}
+#liveRoomScreen #liveSupporters{
+ position:static!important;inset:auto!important;flex:0 0 auto!important;width:100%!important;
+ max-height:8dvh!important;overflow:auto!important;margin:0!important;
+}
+#liveRoomScreen #liveRoomComments{
+ position:static!important;inset:auto!important;display:flex!important;flex:0 0 19dvh!important;
+ width:100%!important;height:19dvh!important;min-height:105px!important;max-height:23dvh!important;
+ overflow:hidden!important;margin:0!important;border-radius:13px!important;
+}
+#liveRoomScreen #liveRoomCommentList{flex:1 1 auto!important;min-height:0!important;max-height:none!important;overflow-y:auto!important}
+#liveRoomScreen #liveRoomCommentForm{flex:0 0 auto!important}
+#liveRoomScreen #liveRoomCommentInput{min-width:0!important}
+#liveRoomScreen #liveGiftPanel{
+ position:fixed!important;z-index:150!important;left:10px!important;right:10px!important;
+ bottom:calc(env(safe-area-inset-bottom) + 12px)!important;top:auto!important;
+ max-height:65dvh!important;overflow:auto!important;
+}
+@media(max-width:520px){
+ #liveRoomScreen{gap:6px!important;padding-left:8px!important;padding-right:8px!important}
+ #liveRoomScreen #realtimekitRoom{flex-basis:40dvh!important;height:40dvh!important;max-height:44dvh!important;min-height:205px!important}
+ #liveRoomScreen #liveRoomComments{flex-basis:18dvh!important;height:18dvh!important;min-height:100px!important}
+ #liveRoomScreen #liveSupporters{max-height:7dvh!important}
+}
+@media(max-height:700px){
+ #liveRoomScreen #realtimekitRoom{flex-basis:34dvh!important;height:34dvh!important;max-height:38dvh!important;min-height:175px!important}
+ #liveRoomScreen #liveRoomComments{flex-basis:16dvh!important;height:16dvh!important;min-height:90px!important}
+ #liveRoomScreen #liveSupporters{max-height:6dvh!important}
+}
+</style>
 </head>
 <body><main class="app">
 <header class="top"><div class="brand">Xora <span>live</span></div><div class="actions"><button class="wallet" onclick="showWalletInfo()">XONA <span id="walletCoins">…</span></button><button class="iconbtn" aria-label="الرسائل" onclick="openInbox()">✉</button><button class="iconbtn" aria-label="الإشعارات" onclick="openNotifications()">♧</button><button id="modEntry" class="iconbtn mod-entry" aria-label="مركز الإشراف" title="مركز الإشراف" onclick="openModerationPanel()">🛡</button><button id="ownerEntry" class="iconbtn owner-entry" aria-label="لوحة المالك" title="لوحة المالك" onclick="openOwnerPanel()">♛</button></div></header>
