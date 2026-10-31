@@ -959,8 +959,18 @@ async function joinRealtimeKit(authToken,role,stream){
  document.getElementById('liveRoomTitle').textContent=stream.title||'بث مباشر';
  const root=document.getElementById('realtimekitRoom');root.innerHTML='';
  const el=document.createElement('rtk-meeting');
- el.setAttribute('show-setup-screen','false');el.showSetupScreen=false;el.meeting=meeting;
- root.appendChild(el);forceXoraPortraitStage(root);
+ /* RealtimeKit UI Kit requires its layout/design properties before attaching the meeting. */
+ el.setAttribute('show-setup-screen','false');
+ el.showSetupScreen=false;
+ el.applyDesignSystem=true;
+ el.loadConfigFromPreset=true;
+ el.gridLayout='column';
+ el.mode='fill';
+ el.size='lg';
+ el.leaveOnUnmount=false;
+ el.meeting=meeting;
+ root.appendChild(el);
+ forceXoraPortraitStage(root);
  showScreen('liveRoomScreen');
  status.textContent='جارٍ الاتصال بالبث وتشغيل الكاميرا…';
  try{
