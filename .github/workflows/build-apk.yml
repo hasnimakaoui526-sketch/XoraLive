@@ -1,4 +1,4 @@
-name: Build Xora Live APK
+name: Build Xora Live APK (automatic)
 on:
   workflow_dispatch:
   push:
