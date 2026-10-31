@@ -20,6 +20,9 @@ jobs:
           unzip -o XoraLive_GitHub_Ready.zip -d .
           test -f app/build.gradle
           test -f app/src/main/assets/index.html
+          test -f app/src/main/assets/home.html
+          grep -q 'handleXoraAuth' app/src/main/assets/index.html
+          grep -q 'bootXoraAuthenticatedApp' app/src/main/assets/home.html
       - name: Set up Java 17
         uses: actions/setup-java@v4
         with:
