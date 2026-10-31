@@ -367,7 +367,7 @@ async function openOwnerPanel(){if(!xoraUser){openAuth();return}const ok=await c
 let ownerDmSelected=null,ownerDmPollTimer=null,ownerDmListTimer=null,ownerDmLastMessageAt=null,ownerDmMessagesCache=[];
 async function ownerDmLoadConversations(){
  if(!xoraIsAppOwner)return; const root=document.getElementById('ownerDmConversationList'); if(!root)return; root.textContent='جارٍ تحميل المحادثات…';
- const {data,error}=await xoraSupabase.rpc('owner_dm_list_conversations',{p_search:document.getElementById('ownerDmSearch')?.value.trim()||null,p_limit:200});
+ const {data,error}=await xoraSupabase.rpc('owner_dm_list_conversations',{p_search:document.getElementById('ownerDmSearch')?.value.trim()||null,p_limit:1000});
  if(error){root.textContent='تعذر تحميل المحادثات: '+error.message;return} root.innerHTML='';
  if(!Array.isArray(data)||!data.length){root.textContent='لا توجد محادثات خاصة حتى الآن.';return}
  for(const c of data){const card=document.createElement('article');card.className='owner-card';const title=document.createElement('b');title.textContent=c.user_a_name+' ↔ '+c.user_b_name;const meta=document.createElement('div');meta.className='owner-status';meta.textContent=Number(c.message_count||0)+' رسالة · آخر رسالة: '+new Date(c.last_at).toLocaleString('ar');const btn=document.createElement('button');btn.className='xora-action';btn.textContent='فتح المحادثة';btn.onclick=()=>ownerDmOpenConversation(c);card.append(title,meta,btn);root.append(card)}
