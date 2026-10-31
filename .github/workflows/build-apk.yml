@@ -50,11 +50,33 @@ jobs:
           ls -lh app/build/outputs/apk/debug/app-debug.apk
       - name: Save APK into repository
         run: |
-          mkdir -p downloads
-          cp app/build/outputs/apk/debug/app-debug.apk downloads/XoraLive-debug.apk
+          set -e
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add downloads/XoraLive-debug.apk
-          git commit -m "Add latest Xora Live debug APK" || echo "APK unchanged"
-          git pull --rebase origin main
-          git push
+          for attempt in 1 2 3; do
+            git fetch origin main
+            for path in home.html android-fixes/MainActivity.java android-fixes/AndroidManifest.xml XoraLive_GitHub_Ready.zip; do
+              built="$(git rev-parse "$GITHUB_SHA:$path")"
+              latest="$(git rev-parse "origin/main:$path")"
+              if [ "$built" != "$latest" ]; then
+                echo "A newer source revision exists; skipping this stale APK. The newer run will build it."
+                exit 0
+              fi
+            done
+            git reset --hard origin/main
+            mkdir -p downloads
+            cp app/build/outputs/apk/debug/app-debug.apk downloads/XoraLive-debug.apk
+            git add downloads/XoraLive-debug.apk
+            if git diff --cached --quiet; then
+              echo "APK unchanged"
+              exit 0
+            fi
+            git commit -m "Add latest Xora Live debug APK"
+            if git push origin HEAD:main; then
+              echo "APK saved successfully"
+              exit 0
+            fi
+            echo "Branch moved during APK upload; retrying against latest main."
+          done
+          echo "Could not save APK after 3 attempts."
+          exit 1
