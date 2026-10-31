@@ -224,6 +224,76 @@
 </style><style>
 .msg-report{border:0;background:transparent;color:#c7a5d8;font-size:10px;padding:3px 7px;align-self:flex-start;cursor:pointer}.mod-entry{display:none!important}.mod-entry.ready{display:inline-flex!important}
 .moderation-screen .owner-card{margin:10px 0}.mod-report-meta{font-size:11px;color:#b9a9c4;white-space:pre-wrap;margin-top:6px}.mod-report-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}.mod-report-actions button{flex:1;min-width:105px}.mod-toolbar{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}.mod-toolbar input,.mod-toolbar select{min-width:0;background:#241b2d;color:#fff;border:1px solid #594267;border-radius:10px;padding:10px}
+
+/* XORA LIVE — unified host and viewer visual refresh (keeps existing RealtimeKit and actions) */
+#liveSetupScreen{
+ background:radial-gradient(ellipse at 50% 8%,#49265d 0%,#17101f 42%,#08070c 100%)!important;
+ color:#fff!important;gap:0!important
+}
+#liveSetupScreen .live-setup-head{max-width:760px;margin:0 auto 12px!important;padding:4px 0;width:100%}
+#liveSetupScreen .live-setup-head .back{border:1px solid #684b75;background:#21172a;color:#f8eefa;border-radius:14px;padding:10px 14px}
+#liveSetupScreen .live-setup-intro{max-width:760px;margin:clamp(8px,2vh,20px) auto 16px!important;text-align:right}
+#liveSetupScreen .live-kicker{background:#2a1b35;border-color:#79558a;color:#f1d49b;letter-spacing:.2px}
+#liveSetupScreen .live-setup-intro h2{font-size:clamp(25px,6vw,36px);font-weight:950;line-height:1.2}
+#liveSetupScreen .live-setup-intro p{max-width:520px;color:#c9b9d0}
+#liveSetupScreen .live-setup-card{max-width:760px!important;flex:0 0 auto!important;border:1px solid #594064!important;background:linear-gradient(155deg,#21172c 0%,#110e17 78%)!important;border-radius:26px!important;box-shadow:0 22px 65px #0009!important;padding:clamp(12px,3vw,22px)!important}
+#liveSetupScreen .live-camera-frame{flex:0 0 auto!important;min-height:0!important;aspect-ratio:16/10!important;border:1px solid #765488!important;border-radius:21px!important;background:radial-gradient(circle at 50% 40%,#382542,#0b0910 75%)!important;box-shadow:inset 0 0 35px #0008}
+#liveSetupScreen #cameraPreview{width:100%!important;height:100%!important;min-height:0!important;object-fit:cover!important}
+#liveSetupScreen .live-camera-indicator{top:12px;right:12px;background:#a3234c;color:#fff;border:1px solid #ff8cae;padding:7px 11px}
+#liveSetupScreen .live-camera-tools{padding:12px 2px 16px}
+#liveSetupScreen .live-tool-btn{border:1px solid #8c62a0;background:#30213b;color:#f7eaff;border-radius:13px;padding:11px 14px;font-weight:850}
+#liveSetupScreen .live-secure-note{color:#c6b4ce}
+#liveSetupScreen .live-title-label{display:block;color:#e8c98b;font-weight:850;font-size:12px;margin:5px 2px 7px}
+#liveSetupScreen #liveTitle{width:100%;border:1px solid #594064;border-radius:14px;background:#100c17;color:#fff;padding:14px;font:inherit;outline:none}
+#liveSetupScreen #liveTitle:focus{border-color:#c18bda;box-shadow:0 0 0 3px #9b5bb322}
+#liveSetupScreen .live-feature-chips{display:flex;flex-wrap:wrap;gap:7px;margin:13px 0 16px}
+#liveSetupScreen .live-feature-chips span{border:1px solid #4c3858;background:#241a2d;color:#e8d8ef;border-radius:30px;padding:7px 10px;font-size:10px}
+#liveSetupScreen .live-start-btn{width:100%;min-height:52px;border:0!important;border-radius:16px!important;background:linear-gradient(110deg,#e6bd78,#b77acb)!important;color:#1a1020!important;font-size:15px;font-weight:950;box-shadow:0 9px 25px #bd7bc533}
+#liveSetupScreen .live-start-btn:disabled{opacity:.6}
+#liveSetupScreen .live-end-btn{width:100%;min-height:46px;border-radius:14px;margin-top:9px}
+#liveSetupScreen .live-camera-status{border:1px solid #392b43;border-radius:13px;background:#0d0a12;padding:11px!important;margin-top:12px;color:#d1c2d8!important;text-align:center}
+#liveSetupScreen .live-setup-foot{max-width:760px;color:#9d8ca7;padding:14px 0 4px}
+#liveRoomScreen{background:radial-gradient(ellipse at 50% 0%,#291833 0%,#09070d 42%)!important;color:#fff}
+#liveRoomScreen>.live-room-top{min-height:58px!important;padding:8px 13px!important;border-bottom:1px solid #382640;background:linear-gradient(180deg,#17101feF,#0b0814e8)!important}
+#liveRoomScreen>.live-room-top .back{border:1px solid #60456e!important;background:#21172a!important;border-radius:13px!important;color:#f7eafa!important;padding:10px 13px!important}
+#liveRoomScreen .live-room-heading{justify-content:center;gap:9px}
+#liveRoomScreen .live-room-heading h2{font-size:14px!important;font-weight:900!important}
+#liveRoomScreen .live-now-pill{background:#4b172b;border-color:#a43c60;color:#ffc0d0;padding:6px 10px;font-size:10px}
+#liveRoomScreen .live-room-brand{font-weight:950;letter-spacing:2px;color:#e8c98b;font-size:11px}
+#liveRoomScreen #realtimekitRoom{border:1px solid #493550!important;border-radius:18px!important;overflow:hidden!important;background:#08060c!important;box-shadow:0 14px 40px #0008}
+#liveRoomScreen #liveRoomStatus{padding:7px 12px!important;border:1px solid #3c2b47;border-radius:12px;background:#17111f;color:#d4c3dc!important;font-size:11px}
+#liveRoomScreen #liveHostDashboard{margin:0 10px 6px;border:1px solid #594064;border-radius:14px;background:linear-gradient(120deg,#21172a,#120e18);padding:9px 11px;max-height:15dvh}
+#liveRoomScreen .live-host-head{color:#f0d39a;font-size:12px}
+#liveRoomScreen #liveRoomReactions{margin:0 10px;padding:8px;border:1px solid #46314f;border-radius:17px;background:#130e1bf2;gap:9px;box-shadow:0 8px 25px #0006}
+#liveRoomScreen #liveRoomReactions button{min-height:43px;border-radius:13px!important;font-size:12px!important}
+#liveRoomScreen #liveHeartBtn{background:linear-gradient(130deg,#702344,#39142b)!important;border-color:#9b4267!important;color:#ffb2c9!important}
+#liveRoomScreen #liveGiftBtn{background:linear-gradient(130deg,#e5bb78,#a96fc0)!important;border:0!important;color:#211329!important}
+#liveRoomScreen #liveRoomHeartCount,#liveRoomScreen #liveRoomWallet{font-weight:900;color:#f3d69e;font-size:11px}
+#liveRoomScreen #liveRoomActivity{font-size:11px;color:#f3d69e;min-height:17px;padding:1px 8px}
+#liveRoomScreen #liveGuestRequestBtn{margin:0 10px;border-radius:13px;border:1px solid #79558a;background:#24192e;color:#f4e3fa;padding:10px;font-weight:850}
+#liveRoomScreen #liveGuestPanel.show{border:1px solid #9b75aa;box-shadow:0 14px 35px #000b}
+#liveRoomScreen #liveRoomComments{margin:0 10px 7px!important;border:1px solid #493550!important;border-radius:16px!important;background:#100c17f5!important;padding:9px!important;max-height:21dvh!important;min-height:78px!important}
+#liveRoomScreen #liveRoomCommentsHead{color:#f0d39a;font-size:12px;padding:0 2px 4px}
+#liveRoomScreen #liveRoomCommentList{max-height:calc(21dvh - 76px)!important;gap:5px}
+#liveRoomScreen .live-room-comment{background:#241a2d;border:1px solid #382943;border-radius:10px;padding:6px 9px;font-size:11px}
+#liveRoomScreen #liveRoomCommentInput{background:#09070e!important;border:1px solid #493550!important;border-radius:12px!important;padding:10px 12px!important}
+#liveRoomScreen #liveRoomCommentForm button{border-radius:12px!important;background:linear-gradient(110deg,#dcb575,#a66fba)!important;color:#1b1020!important;font-weight:950}
+#liveRoomScreen #liveGiftPanel{border:1px solid #89649a!important;box-shadow:0 18px 50px #000d!important;background:linear-gradient(145deg,#291d34,#100c17)!important}
+#liveRoomScreen .live-gift-option{border:1px solid #584064!important;border-radius:14px!important;background:#21182a!important}
+#liveRoomScreen .live-gift-option:active{transform:scale(.97)}
+@media(max-height:740px){
+ #liveRoomScreen #liveHostDashboard{max-height:12dvh}
+ #liveRoomScreen #liveRoomComments{max-height:18dvh!important;min-height:68px!important}
+ #liveRoomScreen #liveRoomCommentList{max-height:calc(18dvh - 76px)!important}
+ #liveSetupScreen .live-setup-intro{margin-top:5px!important;margin-bottom:8px!important}
+ #liveSetupScreen .live-setup-intro h2{font-size:24px}
+ #liveSetupScreen .live-camera-frame{aspect-ratio:16/9!important}
+}
+@media(min-width:700px){
+ #liveRoomScreen #liveRoomReactions,#liveRoomScreen #liveRoomComments,#liveRoomScreen #liveHostDashboard,#liveRoomScreen #liveRoomStatus{width:min(100%,900px);align-self:center}
+ #liveRoomScreen #liveRoomComments{max-height:22dvh!important}
+}
+
 </style></head>
 <body><main class="app">
 <header class="top"><div class="brand">Xora <span>live</span></div><div class="actions"><button class="wallet" onclick="showWalletInfo()">XONA <span id="walletCoins">…</span></button><button class="iconbtn" aria-label="الرسائل" onclick="openInbox()">✉</button><button class="iconbtn" aria-label="الإشعارات" onclick="openNotifications()">♧</button><button id="modEntry" class="iconbtn mod-entry" aria-label="مركز الإشراف" title="مركز الإشراف" onclick="openModerationPanel()">🛡</button><button id="ownerEntry" class="iconbtn owner-entry" aria-label="لوحة المالك" title="لوحة المالك" onclick="openOwnerPanel()">♛</button></div></header>
