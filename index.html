@@ -172,5 +172,55 @@ function showNotice(t){const n=document.getElementById('notice');n.textContent=t
   }, 8000);
 })();
 </script>
+
+<script>
+(function(){
+  if(!location.hash.includes('type=recovery')) return;
+  const splash=document.getElementById('splash');
+  if(splash) splash.remove();
+  const root=document.getElementById('loginScreen');
+  if(!root) return;
+  root.classList.add('visible');
+  root.innerHTML=`
+    <main style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:radial-gradient(ellipse at 50% 0%,#6b1455 0,#210b25 42%,#100711 82%);color:#fff;font-family:Arial,Tahoma,sans-serif">
+      <section style="width:100%;max-width:420px;background:#1b1020;border:1px solid #623052;border-radius:24px;padding:26px;box-shadow:0 20px 70px #0008">
+        <div style="font-size:28px;font-weight:900;text-align:center;margin-bottom:10px">Xora <span style="color:#ff2b9d">Live</span></div>
+        <h2 style="text-align:center;margin:8px 0 6px">تعيين كلمة مرور جديدة</h2>
+        <p style="color:#c9b7c9;text-align:center;font-size:13px;line-height:1.7">أدخل كلمة المرور الجديدة لحسابك ثم أكدها.</p>
+        <form id="xoraRecoveryForm" onsubmit="submitXoraRecovery(event)">
+          <label style="display:block;margin:18px 0 7px;font-size:13px">كلمة المرور الجديدة</label>
+          <input id="xoraNewPassword" type="password" minlength="6" autocomplete="new-password" required placeholder="6 أحرف على الأقل" style="width:100%;padding:14px;border-radius:13px;border:1px solid #51334f;background:#100b14;color:#fff;font-size:16px;box-sizing:border-box">
+          <label style="display:block;margin:16px 0 7px;font-size:13px">تأكيد كلمة المرور</label>
+          <input id="xoraConfirmPassword" type="password" minlength="6" autocomplete="new-password" required placeholder="أعد كتابة كلمة المرور" style="width:100%;padding:14px;border-radius:13px;border:1px solid #51334f;background:#100b14;color:#fff;font-size:16px;box-sizing:border-box">
+          <button id="xoraRecoverySubmit" type="submit" style="width:100%;margin-top:20px;padding:15px;border:0;border-radius:14px;background:linear-gradient(110deg,#ff2b9d,#8e36d6);color:white;font-weight:800;font-size:15px">حفظ كلمة المرور</button>
+        </form>
+        <div id="xoraRecoveryNotice" style="display:none;margin-top:16px;padding:12px;border-radius:12px;background:#2a1a2a;color:#f6d4ef;font-size:13px;line-height:1.6;text-align:center"></div>
+      </section>
+    </main>`;
+  window.submitXoraRecovery=async function(event){
+    event.preventDefault();
+    const p=document.getElementById('xoraNewPassword').value;
+    const c=document.getElementById('xoraConfirmPassword').value;
+    const n=document.getElementById('xoraRecoveryNotice');
+    const b=document.getElementById('xoraRecoverySubmit');
+    n.style.display='block';
+    if(p.length<6){n.textContent='كلمة المرور يجب أن تحتوي على 6 أحرف على الأقل.';return;}
+    if(p!==c){n.textContent='كلمتا المرور غير متطابقتين.';return;}
+    b.disabled=true;b.textContent='جارٍ حفظ كلمة المرور…';
+    const {error}=await xoraAuthClient.auth.updateUser({password:p});
+    if(error){n.textContent='تعذر تحديث كلمة المرور: '+(error.message||'حاول إرسال رابط جديد.');b.disabled=false;b.textContent='حفظ كلمة المرور';return;}
+    n.textContent='تم تغيير كلمة المرور بنجاح. يمكنك الآن تسجيل الدخول.';
+    document.getElementById('xoraRecoveryForm').remove();
+    const link=document.createElement('a');link.href='index.html';link.textContent='العودة إلى تسجيل الدخول';
+    link.style='display:block;margin-top:16px;text-align:center;color:#ff9ad2;font-weight:700;text-decoration:none';
+    n.after(link);
+    await xoraAuthClient.auth.signOut();
+  };
+  xoraAuthClient.auth.getSession().then(({data,error})=>{
+    const n=document.getElementById('xoraRecoveryNotice');
+    if(error||!data.session){n.style.display='block';n.textContent='رابط الاستعادة غير صالح أو انتهت صلاحيته. ارجع إلى تسجيل الدخول واطلب رابطاً جديداً.';document.getElementById('xoraRecoveryForm').remove();}
+  });
+})();
+</script>
 </body>
 </html>
