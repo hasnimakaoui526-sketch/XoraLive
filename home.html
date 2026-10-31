@@ -87,6 +87,62 @@
 .live-float-gift.epic{font-size:54px;filter:drop-shadow(0 0 16px #ffcc6b)}
 .xora-cover{width:100%;height:110px;object-fit:cover;border-radius:14px;background:#302139}
 @media(max-width:370px){.xora-feature-hub{grid-template-columns:repeat(2,minmax(0,1fr))}.live-gift-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
+/* Xora Live — refreshed live experience */
+#liveSetupScreen{max-width:520px;margin:0 auto;padding:12px 16px 28px;background:radial-gradient(ellipse at 50% 0%,#382044 0,transparent 48%)}
+.live-setup-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px}
+.live-setup-brand{font-size:12px;font-weight:950;letter-spacing:2px;color:#e8d9f2}.live-setup-brand b{color:#e8c98b}
+.live-setup-intro{margin:8px 2px 18px}.live-kicker{display:inline-flex;padding:7px 11px;border:1px solid #6c4779;background:#281b32;border-radius:30px;color:#e8c98b;font-size:11px;font-weight:800}
+.live-setup-intro h2{font-size:27px;margin:12px 0 5px;color:#fff;letter-spacing:-.5px}.live-setup-intro p{font-size:13px;color:#b9aabe;line-height:1.7;margin:0}
+.live-setup-card{padding:12px;border:1px solid #493650;border-radius:24px;background:linear-gradient(155deg,#21172a,#120f18 78%);box-shadow:0 18px 48px #0006}
+.live-camera-frame{position:relative;width:100%;aspect-ratio:16/10;overflow:hidden;border-radius:18px;background:radial-gradient(circle at 50% 45%,#382542,#100d15 72%);border:1px solid #584160}
+#cameraPreview{display:block;width:100%;height:100%;max-height:none!important;object-fit:cover;background:transparent}
+.live-camera-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;pointer-events:none;background:linear-gradient(0deg,#08050a88,transparent 60%)}
+.live-camera-indicator{position:absolute;top:12px;right:12px;border-radius:20px;padding:6px 10px;background:#150f1ddd;color:#fff;font-size:10px;font-weight:800}
+.live-camera-hint{color:#d6c7dc;font-size:12px;text-shadow:0 2px 8px #000}
+.live-camera-tools{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:11px 2px 15px;flex-wrap:wrap}
+.live-tool-btn{background:#30213b;border:1px solid #644c70;border-radius:12px;color:#f6eafb;padding:10px 12px;font-size:12px;font-weight:800}
+.live-secure-note{font-size:10px;color:#a99bb0}
+.live-title-label{display:block;color:#e8c98b;font-size:12px;font-weight:800;margin:3px 2px 7px}
+#liveTitle{width:100%;border:1px solid #4c3a55;border-radius:13px;background:#100d16;color:#fff;padding:14px;font:inherit;font-size:14px;outline:none}
+#liveTitle:focus{border-color:#b77bd4;box-shadow:0 0 0 3px #9a5bdb22}
+.live-feature-chips{display:flex;gap:7px;flex-wrap:wrap;margin:13px 0 15px}
+.live-feature-chips span{padding:7px 9px;background:#2b2032;border:1px solid #44324c;border-radius:20px;color:#d9cadd;font-size:10px}
+.live-start-btn{width:100%;min-height:52px;border:0!important;border-radius:15px!important;background:linear-gradient(110deg,#d9ad69,#b77bce)!important;color:#1b1020!important;font-size:15px!important;font-weight:950!important;box-shadow:0 9px 25px #a66ac044}
+.live-start-btn span{float:left;font-size:19px}
+.live-end-btn{width:100%;margin-top:9px;min-height:48px;border-radius:14px!important;background:#5a1c32!important;color:#ffe1e8!important;border:1px solid #a34360!important}
+.live-camera-status{padding:10px 4px 2px;text-align:center;color:#bbaec4;font-size:11px;line-height:1.6;min-height:24px}
+.live-setup-foot{text-align:center;color:#887a91;font-size:10px;padding:18px 0 0}
+#liveRoomScreen{background:radial-gradient(ellipse at 50% 0%,#2a1b35 0,transparent 45%),#09070d!important;padding:calc(env(safe-area-inset-top) + 8px) 10px calc(env(safe-area-inset-bottom) + 8px)!important;gap:8px!important}
+.live-room-top{display:flex;align-items:center;justify-content:space-between;gap:8px;flex:0 0 auto;min-height:44px}
+#liveRoomScreen>.live-room-top .back{margin:0;border-radius:12px;padding:9px 11px;background:#201827;border:1px solid #483650;color:#f6eafa;font-size:11px}
+.live-room-heading{display:flex;align-items:center;gap:8px;min-width:0;flex:1}
+#liveRoomScreen>#liveRoomTitle{display:none}
+.live-room-heading h2{margin:0!important;color:#fff!important;font-size:14px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.live-now-pill{display:inline-flex;align-items:center;gap:5px;padding:5px 8px;background:#4b172b;border:1px solid #a43c60;border-radius:20px;color:#ffb5c9;font-size:9px;font-weight:900;white-space:nowrap}
+.live-now-pill i{width:6px;height:6px;border-radius:50%;background:#ff456d;box-shadow:0 0 9px #ff456d}
+.live-room-brand{font-size:10px;letter-spacing:2px;color:#bca5c9;font-weight:900}
+#realtimekitRoom{border:1px solid #44334d!important;border-radius:18px!important;background:#100d16!important;box-shadow:0 12px 32px #0005}
+.live-room-statusbar{display:flex;align-items:center;gap:7px;flex:0 0 auto;min-height:20px}
+.live-status-dot{width:7px;height:7px;border-radius:50%;background:#6ee0a4;box-shadow:0 0 9px #6ee0a4}
+#liveRoomStatus{color:#c7b8ce!important;font-size:10px!important;max-height:28px!important;padding:0!important}
+#liveRoomReactions{gap:7px!important}
+#liveRoomReactions button{min-height:42px;border-radius:13px!important}
+#liveHeartBtn{background:linear-gradient(120deg,#642443,#351326)!important;border-color:#82405e!important;color:#ffc0d2!important}
+#liveGiftBtn{background:linear-gradient(120deg,#d5a45f,#a76ac1)!important;border:0!important;color:#1b1020!important}
+#liveRoomHeartCount,#liveRoomWallet{padding:0 2px;color:#e8c98b!important;font-weight:800}
+#liveRoomActivity{color:#e8c98b!important;font-size:10px!important;min-height:15px!important}
+#liveRoomComments{background:linear-gradient(145deg,#1b1422,#120e17)!important;border:1px solid #44334d!important;border-radius:17px!important;max-height:24dvh!important;padding:9px!important}
+#liveRoomCommentsHead{color:#f5e8f8!important;font-size:12px!important}
+#liveRoomCommentList{max-height:calc(24dvh - 76px)!important}
+.live-room-comment{background:#2a2031!important;border:1px solid #3d2d47;color:#f3e9f5!important;border-radius:10px!important;padding:6px 8px!important}
+#liveRoomCommentForm button{background:linear-gradient(120deg,#d5a45f,#a76ac1)!important;color:#1b1020!important}
+#liveRoomCommentInput{background:#100d16!important;border-color:#483650!important}
+#liveGuestRequestBtn{border-radius:13px!important;background:#31203d!important;border:1px solid #75538a!important;color:#f4ddff!important;padding:10px!important;font-weight:800}
+#liveGuestPanel,#liveSupporters{background:#1b1422!important;border:1px solid #44334d!important;border-radius:14px!important;padding:10px!important;color:#f3e8f6}
+#liveSupporters h4{margin:0 0 7px;color:#e8c98b;font-size:12px}
+#liveGiftPanel{background:linear-gradient(145deg,#24182d,#120e17)!important;border-color:#79578a!important;border-radius:20px!important}
+@media(max-width:390px){#liveSetupScreen{padding-left:12px;padding-right:12px}.live-setup-intro h2{font-size:24px}.live-secure-note{font-size:9px}.live-feature-chips span{font-size:9px;padding:6px 7px}#liveRoomScreen{padding-left:7px!important;padding-right:7px!important}}
 </style><style>html.xora-auth-check body{visibility:hidden}</style><script>document.documentElement.classList.add("xora-auth-check")</script>
 <style>
 .owner-entry{display:none!important}.owner-entry.ready{display:inline-flex!important}
@@ -193,11 +249,32 @@
 <div class="owner-actions"><button class="back" onclick="ownerLoadAll()">↻ تحديث بيانات لوحة المالك</button></div>
 <div id="ownerPanelStatus" class="owner-status"></div>
 </section>
-<section class="screen" id="liveSetupScreen"><button class="back" onclick="closeLiveSetup()">← الرئيسية</button><h2>بدء بث مباشر</h2><p>ابدأ بثاً حقيقياً بالكاميرا والميكروفون ليشاهده أعضاء Xora live.</p><input id="liveTitle" maxlength="100" placeholder="عنوان البث" value="بث مباشر جديد" style="width:100%;padding:13px;background:#211a2a;color:white;border:1px solid var(--line);border-radius:12px;margin:10px 0"><video id="cameraPreview" autoplay playsinline muted style="width:100%;border-radius:18px;background:#17121e;max-height:48vh"></video><button onclick="enableCameraPreview()">معاينة الكاميرا</button><button class="gift" id="goLiveBtn" onclick="startRealLive()">● ابدأ البث الآن</button><button class="secondary" id="endLiveBtn" onclick="endRealLive()" style="display:none">إنهاء البث</button><div id="cameraStatus" class="profile-bio">لم يبدأ البث بعد.</div></section><section class="screen" id="liveRoomScreen"><button class="back" onclick="leaveLiveRoom()">← مغادرة البث</button><h2 id="liveRoomTitle">بث مباشر</h2><div id="realtimekitRoom" style="background:#120e18"></div><div id="liveRoomStatus" class="profile-bio">جارٍ الاتصال بالبث…</div><div id="liveRoomReactions"><button id="liveHeartBtn" onclick="sendLiveHeart()">❤️ أرسل قلباً</button><span id="liveRoomHeartCount">0</span><button id="liveGiftBtn" onclick="toggleLiveGiftPanel()">🎁 الهدايا</button><span id="liveRoomWallet">✦ <b id="liveRoomWalletCoins">…</b></span></div><div id="liveRoomActivity" aria-live="polite">تفاعل مع المذيع بالقلوب والهدايا</div><div id="liveEntranceOverlay" aria-live="polite"></div>
-<button id="liveGuestRequestBtn" onclick="requestLiveGuest()">🎤 اطلب الانضمام إلى مقعد ضيف</button>
-<div id="liveGuestPanel"><b>طلبات الانضمام</b><div id="liveGuestRequestList" class="xora-muted">لا توجد طلبات حالياً</div></div>
-<div id="liveSupporters"><h4>🏆 أفضل داعمي هذا البث</h4><div id="liveSupporterList" class="xora-muted">لا توجد هدايا بعد</div></div>
-<div id="liveGiftPanel"><b>🎁 اختر هديتك</b><div class="profile-bio">ترسل الهدية للمذيع وتُخصم قيمتها من رصيدك الافتراضي</div><div class="live-gift-grid"><button class="live-gift-option" onclick="sendLiveGift('rose')"><strong>🌹</strong>وردة<small>10 ✦</small></button><button class="live-gift-option" onclick="sendLiveGift('heart')"><strong>💖</strong>قلب<small>25 ✦</small></button><button class="live-gift-option" onclick="sendLiveGift('star')"><strong>⭐</strong>نجمة<small>50 ✦</small></button><button class="live-gift-option" onclick="sendLiveGift('crown')"><strong>👑</strong>تاج<small>100 ✦</small></button><button class="live-gift-option" onclick="sendLiveGift('diamond')"><strong>💎</strong>ألماسة<small>250 ✦</small></button><button class="live-gift-option" onclick="sendLiveGift('rocket')"><strong>🚀</strong>صاروخ<small>500 ✦</small></button><button class="live-gift-option" onclick="sendLiveGift('lion')"><strong>🦁</strong>أسد ملكي<small>1000 ✦</small></button></div><button class="back" style="width:100%;margin-top:10px" onclick="toggleLiveGiftPanel(false)">إغلاق</button></div><section id="liveRoomComments"><div id="liveRoomCommentsHead"><span>💬 تعليقات البث</span><span id="liveRoomCommentCount">0</span></div><div id="liveRoomCommentList" aria-live="polite"><div class="profile-bio">ابدأ المحادثة…</div></div><form id="liveRoomCommentForm" onsubmit="sendLiveRoomComment(event)"><input id="liveRoomCommentInput" maxlength="300" placeholder="اكتب تعليقاً…" autocomplete="off"><button type="submit">إرسال</button></form></section></section>
+<section class="screen" id="liveSetupScreen">
+ <div class="live-setup-head"><button class="back" onclick="closeLiveSetup()">← الرئيسية</button><span class="live-setup-brand">XORA <b>LIVE</b></span></div>
+ <div class="live-setup-intro"><span class="live-kicker">✦ لحظتك على الهواء</span><h2>ابدأ بثك المباشر</h2><p>شارك لحظاتك مع مجتمع Xora، وتواصل بالصوت والصورة والهدايا.</p></div>
+ <div class="live-setup-card">
+  <div class="live-camera-frame"><video id="cameraPreview" autoplay playsinline muted></video><div class="live-camera-overlay"><span class="live-camera-indicator">● معاينة الكاميرا</span><span class="live-camera-hint">ستظهر صورتك هنا قبل بدء البث</span></div></div>
+  <div class="live-camera-tools"><button class="live-tool-btn" onclick="enableCameraPreview()">◉ تشغيل معاينة الكاميرا</button><span class="live-secure-note">🔒 لن يبدأ البث إلا عند ضغطك على الزر</span></div>
+  <label class="live-title-label" for="liveTitle">عنوان البث</label><input id="liveTitle" maxlength="100" placeholder="ما الذي تود مشاركته اليوم؟" value="بث مباشر جديد">
+  <div class="live-feature-chips"><span>🎥 فيديو مباشر</span><span>🎙️ صوت واضح</span><span>🎁 هدايا وتفاعل</span></div>
+  <button class="gift live-start-btn" id="goLiveBtn" onclick="startRealLive()">● ابدأ البث الآن <span>←</span></button>
+  <button class="secondary live-end-btn" id="endLiveBtn" onclick="endRealLive()" style="display:none">■ إنهاء البث</button>
+  <div id="cameraStatus" class="profile-bio live-camera-status">جهّز الكاميرا والميكروفون، ثم ابدأ البث عندما تكون مستعداً.</div>
+ </div>
+ <div class="live-setup-foot">كن لطيفاً، احترم خصوصية الآخرين، واستمتع بوقتك 💜</div>
+</section>
+<section class="screen" id="liveRoomScreen">
+ <div class="live-room-top"><button class="back" onclick="leaveLiveRoom()">← مغادرة</button><div class="live-room-heading"><span class="live-now-pill"><i></i> مباشر</span><h2 id="liveRoomTitle">بث مباشر</h2></div><span class="live-room-brand">XORA</span></div>
+ <div id="realtimekitRoom" style="background:#120e18"></div>
+ <div class="live-room-statusbar"><span class="live-status-dot"></span><div id="liveRoomStatus" class="profile-bio">جارٍ الاتصال بالبث…</div></div>
+ <div id="liveRoomReactions"><button id="liveHeartBtn" onclick="sendLiveHeart()">❤️ أرسل قلباً</button><span id="liveRoomHeartCount">0</span><button id="liveGiftBtn" onclick="toggleLiveGiftPanel()">🎁 الهدايا</button><span id="liveRoomWallet">✦ <b id="liveRoomWalletCoins">…</b></span></div>
+ <div id="liveRoomActivity" aria-live="polite">تفاعل مع المذيع بالقلوب والهدايا</div><div id="liveEntranceOverlay" aria-live="polite"></div>
+ <button id="liveGuestRequestBtn" onclick="requestLiveGuest()">🎤 اطلب الانضمام إلى مقعد ضيف</button>
+ <div id="liveGuestPanel"><b>طلبات الانضمام</b><div id="liveGuestRequestList" class="xora-muted">لا توجد طلبات حالياً</div></div>
+ <div id="liveSupporters"><h4>🏆 أفضل الداعمين</h4><div id="liveSupporterList" class="xora-muted">لا توجد هدايا بعد</div></div>
+ <div id="liveGiftPanel"><b>🎁 اختر هديتك</b><div class="profile-bio">ترسل الهدية للمذيع وتُخصم قيمتها من رصيدك الافتراضي</div><div class="live-gift-grid"><button class="live-gift-option" onclick="sendLiveGift('rose')"><strong>🌹</strong>وردة<small>10 ✦</small></button><button class="live-gift-option" onclick="sendLiveGift('heart')"><strong>💖</strong>قلب<small>25 ✦</small></button><button class="live-gift-option" onclick="sendLiveGift('star')"><strong>⭐</strong>نجمة<small>50 ✦</small></button><button class="live-gift-option" onclick="sendLiveGift('crown')"><strong>👑</strong>تاج<small>100 ✦</small></button><button class="live-gift-option" onclick="sendLiveGift('diamond')"><strong>💎</strong>ألماسة<small>250 ✦</small></button><button class="live-gift-option" onclick="sendLiveGift('rocket')"><strong>🚀</strong>صاروخ<small>500 ✦</small></button><button class="live-gift-option" onclick="sendLiveGift('lion')"><strong>🦁</strong>أسد ملكي<small>1000 ✦</small></button></div><button class="back" style="width:100%;margin-top:10px" onclick="toggleLiveGiftPanel(false)">إغلاق</button></div>
+ <section id="liveRoomComments"><div id="liveRoomCommentsHead"><span>💬 المحادثة المباشرة</span><span id="liveRoomCommentCount">0</span></div><div id="liveRoomCommentList" aria-live="polite"><div class="profile-bio">ابدأ المحادثة…</div></div><form id="liveRoomCommentForm" onsubmit="sendLiveRoomComment(event)"><input id="liveRoomCommentInput" maxlength="300" placeholder="اكتب تعليقاً للمذيع…" autocomplete="off"><button type="submit">إرسال</button></form></section>
+</section>
 <section class="screen" id="groupChat"><button class="back" onclick="closeGroupChat()">← العودة للرئيسية</button><div class="group-chat-head"><h2>الدردشة الجماعية</h2><span class="online-pill">● مجتمع Xora</span></div><div class="group-chat-log" id="groupChatLog"><div class="group-msg"><div class="sender">إدارة Xora</div><div class="bubble">أهلاً بكم في الدردشة الجماعية 💜 حافظوا على الاحترام واستمتعوا بوقتهم!</div></div></div><form class="group-chat-form" onsubmit="sendGroupMessage(event)"><input id="groupChatInput" maxlength="300" placeholder="اكتب رسالة للجميع…" autocomplete="off"><button type="submit">إرسال</button></form><div class="chat-note" id="chatNote">الدردشة المباشرة المشتركة عبر Xora live</div></section>
 <section class="screen" id="leaderboardScreen"><button class="back" onclick="goHome()">← الرئيسية</button><h2>🏆 أفضل الداعمين</h2><p class="xora-muted">ترتيب مرسلي الهدايا حسب قيمة العملات الافتراضية.</p><div class="xora-panel"><div id="leaderboardList">جارٍ تحميل الترتيب…</div></div><button onclick="loadLeaderboard()" class="xora-action">تحديث الترتيب</button></section>
 <section class="screen" id="rewardsScreen"><button class="back" onclick="goHome()">← الرئيسية</button><h2>🎁 المهام اليومية وصندوق الحظ</h2><div class="xora-panel"><b>صندوق الحظ اليومي</b><p class="xora-muted">جرب حظك مرة واحدة كل يوم واربح عملات افتراضية.</p><button class="xora-action" id="spinLuckyBtn" onclick="spinDailyLuck()">🎲 افتح صندوق الحظ</button></div><div class="xora-panel"><b>المهام اليومية</b><div id="dailyTasksList">جارٍ التحميل…</div></div></section>
