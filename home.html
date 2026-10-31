@@ -161,7 +161,7 @@
 <div id="ownerDmConversationList"><p class="owner-status">اضغط تحديث لعرض المحادثات.</p></div>
 <div id="ownerDmThreadPanel" style="display:none;margin-top:12px">
 <div class="owner-inline"><b id="ownerDmThreadTitle">المحادثة</b><button class="secondary" onclick="ownerDmCloseThread()">رجوع للقائمة</button></div>
-<div id="ownerDmThreadMessages" class="group-chat-log" style="height:48vh;max-height:520px"></div>
+<button class="secondary" style="width:100%;margin:8px 0" onclick="ownerDmLoadOlder()">تحميل الرسائل الأقدم</button><div id="ownerDmThreadMessages" class="group-chat-log" style="height:48vh;max-height:520px"></div>
 <div class="owner-status" id="ownerDmThreadStatus">المزامنة التلقائية مفعّلة أثناء فتح هذه الصفحة.</div>
 </div></div>
 <div class="owner-section-title">إدارة الأعضاء والصلاحيات</div>
@@ -364,7 +364,7 @@ let xoraIsAppOwner=false, ownerUsersCache=[];
 function ownerSetStatus(id,msg){const el=document.getElementById(id);if(el)el.textContent=msg}
 async function checkOwnerAccess(){if(!xoraUser)return false;const {data,error}=await xoraSupabase.rpc('is_app_owner');xoraIsAppOwner=!error&&data===true;const b=document.getElementById('ownerEntry');if(b)b.classList.toggle('ready',xoraIsAppOwner);return xoraIsAppOwner}
 async function openOwnerPanel(){if(!xoraUser){openAuth();return}const ok=await checkOwnerAccess();if(!ok){toast('هذه اللوحة مخصصة لمالك التطبيق فقط');return}showScreen('ownerScreen');await ownerLoadAll()}
-let ownerDmSelected=null,ownerDmPollTimer=null,ownerDmLastMessageAt=null;
+let ownerDmSelected=null,ownerDmPollTimer=null,ownerDmLastMessageAt=null,ownerDmMessagesCache=[];
 async function ownerDmLoadConversations(){
  if(!xoraIsAppOwner)return; const root=document.getElementById('ownerDmConversationList'); if(!root)return; root.textContent='جارٍ تحميل المحادثات…';
  const {data,error}=await xoraSupabase.rpc('owner_dm_list_conversations',{p_search:document.getElementById('ownerDmSearch')?.value.trim()||null,p_limit:200});
@@ -372,8 +372,27 @@ async function ownerDmLoadConversations(){
  if(!Array.isArray(data)||!data.length){root.textContent='لا توجد محادثات خاصة حتى الآن.';return}
  for(const c of data){const card=document.createElement('article');card.className='owner-card';const title=document.createElement('b');title.textContent=c.user_a_name+' ↔ '+c.user_b_name;const meta=document.createElement('div');meta.className='owner-status';meta.textContent=Number(c.message_count||0)+' رسالة · آخر رسالة: '+new Date(c.last_at).toLocaleString('ar');const btn=document.createElement('button');btn.className='xora-action';btn.textContent='فتح المحادثة';btn.onclick=()=>ownerDmOpenConversation(c);card.append(title,meta,btn);root.append(card)}
 }
-async function ownerDmOpenConversation(c){if(!xoraIsAppOwner)return;ownerDmSelected=c;ownerDmLastMessageAt=null;document.getElementById('ownerDmThreadPanel').style.display='block';document.getElementById('ownerDmThreadTitle').textContent=c.user_a_name+' ↔ '+c.user_b_name;document.getElementById('ownerDmConversationList').style.display='none';await ownerDmLoadMessages(true);if(ownerDmPollTimer)clearInterval(ownerDmPollTimer);ownerDmPollTimer=setInterval(async()=>{if(!xoraIsAppOwner||!document.getElementById('ownerScreen')?.classList.contains('show'))return;if(ownerDmSelected)await ownerDmLoadMessages(false)},2200)}
-async function ownerDmLoadMessages(audit=false){if(!xoraIsAppOwner||!ownerDmSelected)return;const root=document.getElementById('ownerDmThreadMessages');const {data,error}=await xoraSupabase.rpc('owner_dm_get_messages',{p_user_a:ownerDmSelected.user_a,p_user_b:ownerDmSelected.user_b,p_before:null,p_limit:200,p_audit:audit});if(error){root.textContent='تعذر تحميل الرسائل: '+error.message;return}const rows=Array.isArray(data)?data:[];const newest=rows.length?rows[rows.length-1].created_at:null;if(!audit&&newest===ownerDmLastMessageAt)return;ownerDmLastMessageAt=newest;root.innerHTML='';for(const m of rows){const el=document.createElement('div');el.className='group-msg'+(m.sender_id===ownerDmSelected.user_a?' mine':'');const who=document.createElement('div');who.className='sender';who.textContent=(m.sender_id===ownerDmSelected.user_a?ownerDmSelected.user_a_name:ownerDmSelected.user_b_name)+' · '+new Date(m.created_at).toLocaleString('ar');const bubble=document.createElement('div');bubble.className='bubble';bubble.textContent=m.content;el.append(who,bubble);root.append(el)}root.scrollTop=root.scrollHeight;document.getElementById('ownerDmThreadStatus').textContent='آخر مزامنة: '+new Date().toLocaleTimeString('ar')+' · تحديث تلقائي كل ثانيتين تقريباً'}
+async function ownerDmOpenConversation(c){if(!xoraIsAppOwner)return;ownerDmSelected=c;ownerDmLastMessageAt=null;ownerDmMessagesCache=[];document.getElementById('ownerDmThreadPanel').style.display='block';document.getElementById('ownerDmThreadTitle').textContent=c.user_a_name+' ↔ '+c.user_b_name;document.getElementById('ownerDmConversationList').style.display='none';await ownerDmLoadMessages(true);if(ownerDmPollTimer)clearInterval(ownerDmPollTimer);ownerDmPollTimer=setInterval(async()=>{if(!xoraIsAppOwner||!document.getElementById('ownerScreen')?.classList.contains('show'))return;if(ownerDmSelected)await ownerDmLoadMessages(false)},2200)}
+async function ownerDmLoadMessages(audit=false){
+ if(!xoraIsAppOwner||!ownerDmSelected)return;const root=document.getElementById('ownerDmThreadMessages');
+ const {data,error}=await xoraSupabase.rpc('owner_dm_get_messages',{p_user_a:ownerDmSelected.user_a,p_user_b:ownerDmSelected.user_b,p_before:null,p_limit:200,p_audit:audit});
+ if(error){root.textContent='تعذر تحميل الرسائل: '+error.message;return}
+ const rows=Array.isArray(data)?data:[];const newest=rows.length?rows[rows.length-1].created_at:null;
+ const known=new Set(ownerDmMessagesCache.map(m=>m.id));for(const m of rows){if(!known.has(m.id))ownerDmMessagesCache.push(m)}
+ ownerDmMessagesCache.sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));ownerDmLastMessageAt=newest;
+ ownerDmRenderMessages();
+}
+async function ownerDmLoadOlder(){
+ if(!xoraIsAppOwner||!ownerDmSelected||!ownerDmMessagesCache.length)return;
+ const before=ownerDmMessagesCache[0].created_at;const {data,error}=await xoraSupabase.rpc('owner_dm_get_messages',{p_user_a:ownerDmSelected.user_a,p_user_b:ownerDmSelected.user_b,p_before:before,p_limit:200,p_audit:false});
+ if(error){toast('تعذر تحميل الرسائل الأقدم: '+error.message);return}const rows=Array.isArray(data)?data:[];if(!rows.length){toast('لا توجد رسائل أقدم');return}
+ const known=new Set(ownerDmMessagesCache.map(m=>m.id));ownerDmMessagesCache=[...rows.filter(m=>!known.has(m.id)),...ownerDmMessagesCache];ownerDmRenderMessages(false);
+}
+function ownerDmRenderMessages(scrollBottom=true){
+ const root=document.getElementById('ownerDmThreadMessages');root.innerHTML='';
+ for(const m of ownerDmMessagesCache){const el=document.createElement('div');el.className='group-msg'+(m.sender_id===ownerDmSelected.user_a?' mine':'');const who=document.createElement('div');who.className='sender';who.textContent=(m.sender_id===ownerDmSelected.user_a?ownerDmSelected.user_a_name:ownerDmSelected.user_b_name)+' · '+new Date(m.created_at).toLocaleString('ar');const bubble=document.createElement('div');bubble.className='bubble';bubble.textContent=m.content;el.append(who,bubble);root.append(el)}
+ if(scrollBottom)root.scrollTop=root.scrollHeight;document.getElementById('ownerDmThreadStatus').textContent='آخر مزامنة: '+new Date().toLocaleTimeString('ar')+' · تحديث تلقائي كل ثانيتين تقريباً';
+}
 function ownerDmCloseThread(){ownerDmSelected=null;ownerDmLastMessageAt=null;if(ownerDmPollTimer){clearInterval(ownerDmPollTimer);ownerDmPollTimer=null}document.getElementById('ownerDmThreadPanel').style.display='none';document.getElementById('ownerDmConversationList').style.display='block'}
 async function ownerLoadAll(){if(!xoraIsAppOwner)return;ownerSetStatus('ownerPanelStatus','جارٍ تحديث بيانات الإدارة…');await Promise.all([ownerLoadStats(),ownerLoadUsers(),ownerLoadPurchases(),ownerLoadPaymentMethods(),ownerDmLoadConversations()]);ownerSetStatus('ownerPanelStatus','تم تحديث بيانات لوحة المالك.')}
 async function ownerLoadStats(){const [u,l,p,w]=await Promise.all([xoraSupabase.from('profiles').select('id',{count:'exact',head:true}),xoraSupabase.from('streams').select('id',{count:'exact',head:true}).eq('status','live'),xoraSupabase.from('coin_purchase_requests').select('id',{count:'exact',head:true}).eq('status','pending'),xoraSupabase.from('wallets').select('coins')]);document.getElementById('ownerUsersCount').textContent=u.count??'—';document.getElementById('ownerLiveCount').textContent=l.count??'—';document.getElementById('ownerPendingCount').textContent=p.count??'—';document.getElementById('ownerCoinsCount').textContent=(w.data||[]).reduce((n,x)=>n+Number(x.coins||0),0).toLocaleString('ar')}
