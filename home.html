@@ -693,17 +693,12 @@
 </section>
 <section class="screen" id="liveSetupScreen">
  <div class="live-setup-head"><button class="back" onclick="closeLiveSetup()">← الرئيسية</button><span class="live-setup-brand">XORA <b>LIVE</b></span></div>
- <div class="live-setup-intro"><span class="live-kicker">✦ لحظتك على الهواء</span><h2>ابدأ بثك المباشر</h2><p>شارك لحظاتك مع مجتمع Xora، وتواصل بالصوت والصورة والهدايا.</p></div>
- <div class="live-setup-card">
-  <div class="live-camera-frame"><video id="cameraPreview" autoplay playsinline muted></video><div class="live-camera-overlay"><span class="live-camera-indicator">● معاينة الكاميرا</span><span class="live-camera-hint">ستظهر صورتك هنا قبل بدء البث</span></div></div>
-  <div class="live-camera-tools"><button class="live-tool-btn" onclick="enableCameraPreview()">◉ تشغيل معاينة الكاميرا</button><span class="live-secure-note">🔒 لن يبدأ البث إلا عند ضغطك على الزر</span></div>
-  <label class="live-title-label" for="liveTitle">عنوان البث</label><input id="liveTitle" maxlength="100" placeholder="ما الذي تود مشاركته اليوم؟" value="بث مباشر جديد">
-  <div class="live-feature-chips"><span>🎥 فيديو مباشر</span><span>🎙️ صوت واضح</span><span>🎁 هدايا وتفاعل</span></div>
-  <button class="gift live-start-btn" id="goLiveBtn" onclick="startRealLive()">● ابدأ البث الآن <span>←</span></button>
+ <div class="live-setup-intro"><span class="live-kicker">✦ لحظتك على الهواء</span><h2>ابدأ بثك المباشر</h2><p>اضغط الزر وسندخلك إلى بثك مباشرة.</p></div>
+ <div class="live-setup-card live-one-button">
+  <button class="gift live-start-btn" id="goLiveBtn" onclick="startRealLive()">● ابدأ البث</button>
   <button class="secondary live-end-btn" id="endLiveBtn" onclick="endRealLive()" style="display:none">■ إنهاء البث</button>
-  <div id="cameraStatus" class="profile-bio live-camera-status">جهّز الكاميرا والميكروفون، ثم ابدأ البث عندما تكون مستعداً.</div>
+  <div id="cameraStatus" class="profile-bio live-camera-status">سيطلب التطبيق إذن الكاميرا والميكروفون عند بدء البث.</div>
  </div>
- <div class="live-setup-foot">كن لطيفاً، احترم خصوصية الآخرين، واستمتع بوقتك 💜</div>
 </section>
 <section class="screen" id="liveRoomScreen">
  <div class="live-room-top"><div class="live-room-topline"><button class="back" onclick="leaveLiveRoom()">← مغادرة</button><div class="live-room-heading"><span class="live-now-pill"><i></i> مباشر</span><h2 id="liveRoomTitle">بث مباشر</h2></div><span class="live-room-brand">XORA</span></div><div id="liveSupporters"><h4>🏆 الداعمون</h4><div id="liveSupporterList" class="xora-muted">لا توجد هدايا بعد</div></div></div>
@@ -782,7 +777,27 @@ async function enableCameraPreview(){
  }catch(e){if(cameraStream)stopCameraPreview();status.textContent='تعذر تشغيل الكاميرا والميكروفون: '+explain(e);return false}
 }
 function stopCameraPreview(){if(cameraStream){cameraStream.getTracks().forEach(t=>{try{t.stop()}catch(_){}})}cameraStream=null;const v=document.getElementById('cameraPreview');if(v){v.pause();v.srcObject=null}}
-async function startRealLive(){if(!xoraUser){openAuth();return}const btn=document.getElementById('goLiveBtn'),status=document.getElementById('cameraStatus');btn.disabled=true;status.textContent='جارٍ تجهيز البث والاتصال بالخادم…';try{if(!cameraStream){const ready=await enableCameraPreview();if(!ready)throw new Error('لم يتم منح إذن الكاميرا والميكروفون. راجع رسالة الإذن أسفل معاينة الكاميرا.')}if(!cameraStream)throw new Error('اسمح باستخدام الكاميرا والميكروفون أولاً');const result=await xoraLiveRequest({action:'start',title:document.getElementById('liveTitle').value.trim()||'بث مباشر'});activeLiveStream=result.stream;await joinRealtimeKit(result.authToken,'host',result.stream);document.getElementById('endLiveBtn').style.display='block';btn.style.display='none';status.textContent='أنت الآن مباشر. سيظهر بثك في قائمة البثوث الحقيقية.';await loadLiveStreams()}catch(e){status.textContent='تعذر بدء البث: '+e.message;toast('فشل بدء البث')}finally{btn.disabled=false}}
+async function startRealLive(){
+ if(!xoraUser){openAuth();return}
+ const btn=document.getElementById('goLiveBtn'),status=document.getElementById('cameraStatus');
+ btn.disabled=true;btn.textContent='جارٍ بدء البث…';status.textContent='نطلب إذن الكاميرا والميكروفون ثم ندخلك مباشرة إلى البث.';
+ try{
+  if(!window.isSecureContext||!navigator.mediaDevices?.getUserMedia)throw new Error('افتح التطبيق عبر اتصال HTTPS يسمح باستخدام الكاميرا.');
+  stopCameraPreview();
+  const media=await navigator.mediaDevices.getUserMedia({audio:true,video:{facingMode:{ideal:'user'}}});
+  cameraStream=media;
+  if(!media.getVideoTracks().length||media.getVideoTracks()[0].readyState!=='live')throw new Error('لم يتم تشغيل الكاميرا. تحقق من إذن الكاميرا وأغلق أي تطبيق يستخدمها.');
+  const result=await xoraLiveRequest({action:'start',title:'بث مباشر'});
+  activeLiveStream=result.stream;
+  await joinRealtimeKit(result.authToken,'host',result.stream,media);
+  document.getElementById('endLiveBtn').style.display='block';btn.style.display='none';
+  status.textContent='أنت الآن مباشر.';await loadLiveStreams();
+ }catch(e){
+  stopCameraPreview();
+  status.textContent='تعذر بدء البث: '+(e?.message||'خطأ غير معروف');
+  toast('تعذر بدء البث: '+(e?.message||'تحقق من الكاميرا'));
+ }finally{btn.disabled=false;btn.textContent='● ابدأ البث'}
+}
 let liveRoomReactionsChannel=null,liveRoomHeartTotal=0;
 function popLiveHeart(){const room=document.getElementById('liveRoomScreen');if(!room)return;const el=document.createElement('span');el.className='live-float-heart';el.textContent=['💗','💖','❤️','💕'][Math.floor(Math.random()*4)];el.style.left=(12+Math.random()*76)+'%';room.appendChild(el);setTimeout(()=>el.remove(),2100)}
 function popLiveGift(emoji){const room=document.getElementById('liveRoomScreen');if(!room)return;const el=document.createElement('span');el.className='live-float-gift';el.textContent=emoji||'🎁';room.appendChild(el);setTimeout(()=>el.remove(),2200)}
@@ -934,33 +949,16 @@ function forceXoraPortraitStage(root){
  setTimeout(()=>{try{observer.disconnect()}catch(_){}},8000);
 }
 
-async function joinRealtimeKit(authToken,role,stream){
- if(!window.RealtimeKitClient)throw new Error('لم يتم تحميل مشغل RealtimeKit. حدّث الصفحة وحاول مجدداً.');
+async function joinRealtimeKit(authToken,role,stream,mediaStream=null){
+ if(!window.RealtimeKitClient)throw new Error('لم يتم تحميل مشغل البث. حدّث الصفحة وحاول مجدداً.');
  if(activeMeeting){try{await activeMeeting.leave()}catch(_){}activeMeeting=null}
  const publishing=role==='host'||role==='guest';
- /* Stop the preview first so RealtimeKit can acquire the camera exclusively. */
- if(publishing)stopCameraPreview();
- const meeting=await window.RealtimeKitClient.init({authToken,defaults:{audio:publishing,video:publishing}});
+ const videoTrack=mediaStream?.getVideoTracks?.()[0]||null;
+ const audioTrack=mediaStream?.getAudioTracks?.()[0]||null;
+ if(publishing&&(!videoTrack||videoTrack.readyState!=='live'))throw new Error('مسار الكاميرا غير متاح. اسمح بالكاميرا ثم أعد المحاولة.');
+ const meeting=await window.RealtimeKitClient.init({authToken,defaults:{audio:false,video:false}});
  activeMeeting=meeting;activeLiveRole=role;liveRoomStreamKey=String(stream.id||'');
  const status=document.getElementById('liveRoomStatus');
- if(meeting.self&&typeof meeting.self.on==='function'){
-  meeting.self.on('mediaPermissionError',({message,kind}={})=>{
-   const detail=kind==='video'?'الكاميرا':kind==='audio'?'الميكروفون':'الوسائط';
-   status.textContent='تعذر تشغيل '+detail+' داخل البث: '+(message||'تحقق من الأذونات');
-  });
-  meeting.self.on('roomJoined',()=>{status.textContent=publishing?'تم الاتصال بغرفة البث. جارٍ تفعيل الكاميرا…':'تم الاتصال بالبث المباشر.'});
-  meeting.self.on('videoUpdate',({videoEnabled}={})=>{
-   if(publishing)status.textContent=videoEnabled?'الكاميرا تعمل ويتم إرسال الفيديو.':'اتصلت بالغرفة لكن الكاميرا متوقفة.';
-  });
- }
- /* Explicitly join the RealtimeKit room. Initializing the SDK alone does not join it. */
- await meeting.join();
- if(publishing){
-  const permission=meeting.self?.permissions?.canProduceVideo;
-  if(permission==='NOT_ALLOWED')throw new Error('إعداد صلاحيات RealtimeKit يمنع المذيع من نشر الفيديو. يجب تعديل Preset webinar_presenter للسماح بالكاميرا.');
-  await meeting.self.enableVideo();
-  if(role==='host')await meeting.self.enableAudio();
- }
  document.getElementById('liveRoomScreen').classList.toggle('host-mode',role==='host');
  document.getElementById('liveHostCommentStat').textContent='💬 0 تعليق';
  document.getElementById('liveRoomTitle').textContent=stream.title||'بث مباشر';
@@ -968,10 +966,20 @@ async function joinRealtimeKit(authToken,role,stream){
  const el=document.createElement('rtk-meeting');
  el.setAttribute('show-setup-screen','false');el.showSetupScreen=false;el.meeting=meeting;
  root.appendChild(el);forceXoraPortraitStage(root);
- status.textContent=publishing?'تم الاتصال. نتحقق من إرسال صورة الكاميرا…':'أنت تشاهد البث المباشر.';
+ showScreen('liveRoomScreen');
+ status.textContent='جارٍ الاتصال بالبث وتشغيل الكاميرا…';
+ try{
+  await meeting.join();
+  if(publishing){
+   if(meeting.self?.permissions?.canProduceVideo==='NOT_ALLOWED')throw new Error('صلاحية نشر الفيديو غير مفعّلة لحساب المذيع في إعدادات RealtimeKit.');
+   await meeting.self.enableVideo(videoTrack);
+   if(audioTrack)await meeting.self.enableAudio(audioTrack);
+   if(!meeting.self.videoEnabled)throw new Error('اتصلت بالغرفة لكن RealtimeKit لم يؤكد تشغيل الفيديو.');
+   status.textContent='أنت مباشر الآن. يتم إرسال صورة الكاميرا.';
+  }else status.textContent='أنت تشاهد البث المباشر.';
+ }catch(e){try{await meeting.leave()}catch(_){}activeMeeting=null;throw e}
  document.getElementById('liveGuestRequestBtn').style.display=role==='viewer'?'block':'none';
  document.getElementById('liveGuestPanel').classList.toggle('show',role==='host');
- showScreen('liveRoomScreen');
  liveRoomHeartTotal=0;document.getElementById('liveRoomHeartCount').textContent='0';
  toggleLiveGiftPanel(false);await refreshWalletBalance();await loadLiveRoomComments();
  subscribeLiveRoomComments();subscribeLiveRoomReactions();subscribeLiveGuestRequests();
