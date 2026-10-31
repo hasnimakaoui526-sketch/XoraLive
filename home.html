@@ -784,15 +784,13 @@ async function startRealLive(){
  try{
   if(!window.isSecureContext||!navigator.mediaDevices?.getUserMedia)throw new Error('افتح التطبيق عبر اتصال HTTPS يسمح باستخدام الكاميرا.');
   stopCameraPreview();
-  const media=await navigator.mediaDevices.getUserMedia({audio:true,video:{facingMode:{ideal:'user'}}});
-  cameraStream=media;
-  if(!media.getVideoTracks().length||media.getVideoTracks()[0].readyState!=='live')throw new Error('لم يتم تشغيل الكاميرا. تحقق من إذن الكاميرا وأغلق أي تطبيق يستخدمها.');
   const result=await xoraLiveRequest({action:'start',title:'بث مباشر'});
   activeLiveStream=result.stream;
-  await joinRealtimeKit(result.authToken,'host',result.stream,media);
+  await joinRealtimeKit(result.authToken,'host',result.stream);
   document.getElementById('endLiveBtn').style.display='block';btn.style.display='none';
   status.textContent='أنت الآن مباشر.';await loadLiveStreams();
  }catch(e){
+  if(activeLiveStream?.id){try{await xoraLiveRequest({action:'end',stream_id:activeLiveStream.id})}catch(_){}activeLiveStream=null}
   stopCameraPreview();
   status.textContent='تعذر بدء البث: '+(e?.message||'خطأ غير معروف');
   toast('تعذر بدء البث: '+(e?.message||'تحقق من الكاميرا'));
@@ -949,13 +947,10 @@ function forceXoraPortraitStage(root){
  setTimeout(()=>{try{observer.disconnect()}catch(_){}},8000);
 }
 
-async function joinRealtimeKit(authToken,role,stream,mediaStream=null){
+async function joinRealtimeKit(authToken,role,stream){
  if(!window.RealtimeKitClient)throw new Error('لم يتم تحميل مشغل البث. حدّث الصفحة وحاول مجدداً.');
  if(activeMeeting){try{await activeMeeting.leave()}catch(_){}activeMeeting=null}
  const publishing=role==='host'||role==='guest';
- const videoTrack=mediaStream?.getVideoTracks?.()[0]||null;
- const audioTrack=mediaStream?.getAudioTracks?.()[0]||null;
- if(publishing&&(!videoTrack||videoTrack.readyState!=='live'))throw new Error('مسار الكاميرا غير متاح. اسمح بالكاميرا ثم أعد المحاولة.');
  const meeting=await window.RealtimeKitClient.init({authToken,defaults:{audio:false,video:false}});
  activeMeeting=meeting;activeLiveRole=role;liveRoomStreamKey=String(stream.id||'');
  const status=document.getElementById('liveRoomStatus');
@@ -972,12 +967,12 @@ async function joinRealtimeKit(authToken,role,stream,mediaStream=null){
   await meeting.join();
   if(publishing){
    if(meeting.self?.permissions?.canProduceVideo==='NOT_ALLOWED')throw new Error('صلاحية نشر الفيديو غير مفعّلة لحساب المذيع في إعدادات RealtimeKit.');
-   await meeting.self.enableVideo(videoTrack);
-   if(audioTrack)await meeting.self.enableAudio(audioTrack);
+   await meeting.self.enableVideo();
+   await meeting.self.enableAudio();
    if(!meeting.self.videoEnabled)throw new Error('اتصلت بالغرفة لكن RealtimeKit لم يؤكد تشغيل الفيديو.');
-   status.textContent='أنت مباشر الآن. يتم إرسال صورة الكاميرا.';
+   status.textContent='أنت مباشر الآن. يتم إرسال صورة الكاميرا والصوت.';
   }else status.textContent='أنت تشاهد البث المباشر.';
- }catch(e){try{await meeting.leave()}catch(_){}activeMeeting=null;throw e}
+ }catch(e){try{await meeting.leave()}catch(_){}activeMeeting=null;activeLiveRole=null;throw e}
  document.getElementById('liveGuestRequestBtn').style.display=role==='viewer'?'block':'none';
  document.getElementById('liveGuestPanel').classList.toggle('show',role==='host');
  liveRoomHeartTotal=0;document.getElementById('liveRoomHeartCount').textContent='0';
