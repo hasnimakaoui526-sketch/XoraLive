@@ -1733,24 +1733,20 @@ async function loadShortVideos(){
   const feed=document.createElement('div');feed.className='shorts-swipe-feed';
   for(const v of videos){
     const p=v.demo?{username:v.demoName,avatar_url:v.demoAvatar}:byId[v.user_id]||{},card=document.createElement('article');card.className='shorts-card'+(v.demo?' shorts-demo-card':'');
-    if(v.demo){const banner=document.createElement('div');banner.className='shorts-demo-banner';banner.textContent='⚠ حساب تجريبي وهمي — ليس مستخدماً حقيقياً';card.appendChild(banner)}
     const wrap=document.createElement('div');wrap.className='shorts-video-wrap';
     const video=document.createElement('video');video.src=v.video_url;video.controls=false;video.playsInline=true;video.preload='metadata';video.loop=true;video.muted=false;video.setAttribute('controlsList','nodownload');video.addEventListener('click',()=>{if(video.paused)video.play().catch(()=>{});else video.pause()});
     wrap.appendChild(video);
     const meta=document.createElement('div');meta.className='shorts-meta';
     const author=document.createElement('div');author.className='shorts-author';
     const avatar=document.createElement('img');avatar.src=p.avatar_url||'https://placehold.co/80x80/302139/e8c98b?text=X';avatar.alt='';
-    const name=document.createElement('button');name.type='button';name.className='profile-link';name.textContent=(p.username||'مستخدم Xora')+(v.demo?' · تجريبي':'');
+    const name=document.createElement('button');name.type='button';name.className='profile-link';name.textContent=p.username||'مستخدم Xora';
     if(!v.demo)name.onclick=()=>openUserProfile(v.user_id,p.username||'مستخدم Xora',p.avatar_url||'');
     author.append(avatar,name);
-    if(v.demo){const demoTag=document.createElement('span');demoTag.className='shorts-demo-tag';demoTag.textContent='حساب تجريبي';author.appendChild(demoTag)}
     if(!v.demo&&xoraUser&&v.user_id===xoraUser.id){const del=document.createElement('button');del.className='shorts-delete';del.textContent='حذف الفيديو';del.onclick=()=>deleteShortVideo(v.id,v.video_url);author.appendChild(del)}
     const caption=document.createElement('div');caption.className='shorts-caption';caption.textContent=v.caption||'';
-    const date=document.createElement('div');date.className='shorts-date';date.textContent=v.demo?'محتوى تجريبي للتعريف بالفيديوهات':new Date(v.created_at).toLocaleString('ar');
+    const date=document.createElement('div');date.className='shorts-date';date.textContent=new Date(v.created_at).toLocaleString('ar');
     meta.append(author,caption,date);
-    if(v.demo){
-      const note=document.createElement('div');note.className='shorts-demo-note';note.textContent='هذا حساب وفيديو تجريبيان، لا يمثلان مستخدماً حقيقياً.';meta.appendChild(note);
-    }else{
+    if(!v.demo){
       const actions=document.createElement('div');actions.className='shorts-social-actions';
       const videoLikes=likesByVideo[v.id]||[],liked=!!xoraUser&&videoLikes.some(x=>x.user_id===xoraUser.id);
       const likeBtn=document.createElement('button');likeBtn.className='shorts-like'+(liked?' is-liked':'');likeBtn.innerHTML=(liked?'♥':'♡')+' <span>'+videoLikes.length+'</span> إعجاب';likeBtn.setAttribute('aria-label','إعجاب بالفيديو');likeBtn.onclick=()=>toggleShortVideoLike(v.id,likeBtn);
@@ -1833,11 +1829,7 @@ async function deleteShortVideo(id,url){
 
 
 
-<style id="xora-shorts-demo-accounts">
-.shorts-demo-tag{margin-right:auto;padding:5px 9px;border:1px solid #ffbf52;border-radius:20px;color:#211300;background:#ffd36b;font-size:10px;font-weight:950;white-space:nowrap}.shorts-demo-banner{display:block;position:relative;z-index:2;padding:10px 12px;background:linear-gradient(90deg,#7b271d,#c34b28);border-bottom:2px solid #ffc45b;color:#fff;font-size:12px;font-weight:950;text-align:center;letter-spacing:.1px;text-shadow:0 1px 2px #0008}
-.shorts-demo-note{margin-top:10px;padding:8px 10px;border:1px solid #8c6a4533;border-radius:10px;color:#bca9c7;background:#ffffff06;font-size:10px;line-height:1.6}
-.shorts-demo-card{border-color:#705536}
-</style>
+
 <style id="xora-shorts-luxury-upgrade">
 #shortVideosScreen{padding:calc(env(safe-area-inset-top) + 10px) 0 calc(env(safe-area-inset-bottom) + 24px)!important;background:radial-gradient(ellipse at 50% -8%,rgba(132,75,158,.28),transparent 44%),radial-gradient(ellipse at 100% 36%,rgba(139,100,55,.09),transparent 36%),#08070b!important;overflow-y:auto!important}
 .shorts-head{margin:0 14px 8px!important;padding:9px 0 13px!important;background:linear-gradient(180deg,#0a0810f5,#0a0810d9)!important;border-bottom:1px solid rgba(218,183,126,.16);backdrop-filter:blur(18px)}
