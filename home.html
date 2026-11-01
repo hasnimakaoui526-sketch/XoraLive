@@ -683,7 +683,7 @@
 <div class="owner-field"><label>السعر بالدينار الجزائري</label><input id="ownerPackagePrice" type="number" min="0" step="1" placeholder="يحدد لاحقاً"></div>
 <div class="owner-field"><label>ترتيب العرض</label><input id="ownerPackageOrder" type="number" value="0"></div>
 </div><label class="owner-check"><input id="ownerPackageActive" type="checkbox" checked> إظهار الباقة للمستخدمين</label><div class="owner-actions"><button class="xora-action" onclick="ownerSavePackage()">إضافة الباقة</button></div><div id="ownerPackageStatus" class="owner-status">يمكنك إضافة الباقات عندما تقرر أسعارها.</div></div>
-<div class="owner-section-title">طرق الدفع (إعدادها لاحقاً)</div>
+<div class="owner-section-title">إدارة طرق الدفع</div>
 <div id="ownerPaymentMethods"><p class="owner-status">جارٍ تحميل طرق الدفع…</p></div>
 <div class="owner-actions"><button class="back" onclick="ownerLoadAll()">↻ تحديث بيانات لوحة المالك</button></div>
 <div id="ownerPanelStatus" class="owner-status"></div>
@@ -1094,11 +1094,15 @@ function ownerBuildDashboard(){
  if(!titles.length)return;
  const stats=root.querySelector(':scope > .owner-stats');
  const hero=root.querySelector(':scope > .owner-hero');
+ const refreshActions=Array.from(root.querySelectorAll(':scope > .owner-actions')).find(el=>el.querySelector('button[onclick="ownerLoadAll()"]'));
+ const refreshStatus=root.querySelector(':scope > #ownerPanelStatus');
  const nav=document.createElement('div');nav.id='ownerIconDashboard';nav.className='owner-icon-dashboard';
  nav.innerHTML='<div class="owner-dashboard-caption">مركز التحكم · اختر القسم الذي تريد إدارته</div><div class="owner-icon-grid" id="ownerIconGrid"></div>';
  const panels=document.createElement('div');panels.id='ownerDashboardPanels';
  const grid=nav.querySelector('#ownerIconGrid');
- const iconFor=t=>/رسائل خاصة/.test(t)?['💬','مراقبة الخاص']: /الأعضاء/.test(t)?['👥','الأعضاء والرتب']: /البثوث/.test(t)?['📡','البث والغرف']: /الصلاحيات/.test(t)?['🛡️','صلاحيات الإدارة']: /ملكية/.test(t)?['👑','ملكية التطبيق']: /الرتب/.test(t)?['🏅','الرتب والمزايا']: /إعلان/.test(t)?['📣','الإعلانات']: /شراء العملات/.test(t)?['💳','طلبات الشراء']: /باقات العملات/.test(t)?['🪙','باقات العملات']: /طرق الدفع/.test(t)?['🏦','طرق الدفع']:['⚙️',t];
+ const iconFor=t=>/الرسائل الخاصة|رسائل خاصة/.test(t)?['💬','مراقبة الخاص']: /الأعضاء/.test(t)?['👥','الأعضاء والرتب']: /البثوث/.test(t)?['📡','البث والغرف']: /الصلاحيات/.test(t)?['🛡️','صلاحيات الإدارة']: /ملكية/.test(t)?['👑','ملكية التطبيق']: /الرتب/.test(t)?['🏅','الرتب والمزايا']: /إعلان/.test(t)?['📣','الإعلانات']: /شراء العملات/.test(t)?['💳','طلبات الشراء']: /باقات العملات/.test(t)?['🪙','باقات العملات']: /طرق الدفع/.test(t)?['🏦','طرق الدفع']:['⚙️',t];
+ if(refreshActions)nav.append(refreshActions);
+ if(refreshStatus)nav.append(refreshStatus);
  titles.forEach((heading,index)=>{
   const panel=document.createElement('div');panel.className='owner-dashboard-panel';panel.id='ownerPanelSection'+index;panel.hidden=true;
   const bar=document.createElement('div');bar.className='owner-panel-toolbar';
