@@ -55,6 +55,22 @@ public class MainActivity extends Activity {
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
 
         webView.setWebViewClient(new WebViewClient() {
+            @Override public void onPageFinished(WebView view, String url) {
+                super.onPageFinished(view, url);
+                if (url != null && url.endsWith("/assets/index.html")) {
+                    // Do not leave users staring at the static splash image while
+                    // the login interface waits on its long HTML-side timer.
+                    view.evaluateJavascript(
+                            "(function(){"
+                            + "var splash=document.getElementById('splash');"
+                            + "var login=document.getElementById('loginScreen');"
+                            + "if(splash){splash.style.transition='opacity .2s ease';splash.style.opacity='0';splash.style.visibility='hidden';splash.style.display='none';}"
+                            + "if(login){login.classList.add('visible');}"
+                            + "})();",
+                            null
+                    );
+                }
+            }
             @Override public android.webkit.WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
                 return assetLoader.shouldInterceptRequest(request.getUrl());
             }
