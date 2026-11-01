@@ -1847,4 +1847,20 @@ async function deleteShortVideo(id,url){
 #liveRoomScreen #liveGiftBtn{pointer-events:auto!important;width:48px!important;height:48px!important;min-width:48px!important;min-height:48px!important;padding:0!important;border:1px solid #d9b16d!important;border-radius:16px!important;background:linear-gradient(145deg,#e8c98b,#a85d92)!important;color:#241329!important;font-size:25px!important;line-height:1!important;box-shadow:0 5px 20px #0008!important}
 #liveRoomScreen #liveRoomWallet{display:none!important}
 #liveRoomScreen #liveGiftPanel{z-index:45!important;bottom:calc(env(safe-area-inset-bottom) + 76px)!important;left:10px!important;right:10px!important}
+
+/* Live comments: transparent overlay, text only */
+#liveRoomScreen #liveRoomComments{
+  background:rgba(8,6,12,.10)!important;
+  border:0!important;
+  box-shadow:none!important;
+  backdrop-filter:none!important;
+}
+#liveRoomScreen .live-room-comment{
+  background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+  border-radius:0!important;
+  padding:2px 0!important;
+  text-shadow:0 1px 3px #000,0 0 5px #000!important;
+}
 </style>
