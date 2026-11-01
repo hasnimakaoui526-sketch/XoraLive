@@ -32,6 +32,18 @@ jobs:
           cp android-fixes/MainActivity.java app/src/main/java/com/xoralive/app/MainActivity.java
           cp android-fixes/AndroidManifest.xml app/src/main/AndroidManifest.xml
           cp home.html app/src/main/assets/home.html
+          # Reveal the login UI immediately; the previous 8-second splash timer left
+          # the app looking blank during startup on some Android WebViews.
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("app/src/main/assets/index.html")
+          s = p.read_text(encoding="utf-8")
+          old = "  }, 8000);"
+          if old not in s:
+              raise SystemExit("Expected splash timer was not found; refusing to modify the page.")
+          s = s.replace(old, "  }, 0);", 1)
+          p.write_text(s, encoding="utf-8")
+          PY
           grep -q 'handleXoraAuth' app/src/main/assets/index.html
           grep -q 'bootXoraAuthenticatedApp' app/src/main/assets/home.html
       - name: Set up Java 17
