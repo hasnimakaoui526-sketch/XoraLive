@@ -1252,14 +1252,13 @@ xoraSupabase.auth.onAuthStateChange(async(event,session)=>{
 
 <section class="screen" id="shortVideosScreen">
   <div class="shorts-head"><button class="back" onclick="closeScreen('shortVideosScreen')">← رجوع</button><strong>🎬 Xora Shorts</strong><button class="shorts-refresh" onclick="loadShortVideos()">↻ تحديث</button></div>
-  <div class="shorts-hero">
-    <div class="shorts-hero-orb"></div>
-    <span class="shorts-kicker">XORA ORIGINALS · VERTICAL VIDEO</span>
-    <h1>لحظتك تستحق <em>أن تُشاهَد</em></h1>
-    <p>اكتشف إبداع المجتمع، وانشر أجمل لحظاتك في عالم Xora.</p>
-    <div class="shorts-hero-stats"><span>✦ فيديوهات المجتمع</span><span>◉ مشاهدة مباشرة</span><span>◆ إبداع بلا حدود</span></div>
-  </div>
-  <div class="shorts-create">
+  <button class="shorts-open-publish" onclick="openShortPublish()">＋ نشر فيديو</button>
+  <div class="shorts-feed-title"><b>الفيديوهات المنشورة</b><small>اكتشف وشاهد الأحدث</small></div>
+  <div id="shortVideosFeed" class="shorts-feed"><div class="shorts-loading">جارٍ تحميل الفيديوهات…</div></div>
+</section>
+<section class="screen" id="shortVideoPublishScreen">
+  <div class="shorts-head"><button class="back" onclick="showScreen('shortVideosScreen')">← رجوع للفيديوهات</button><strong>🎬 نشر فيديو</strong></div>
+  <div class="shorts-publish-page">
     <div class="shorts-create-title">انشر لحظتك في فيديو قصير</div>
     <label class="shorts-pick" for="shortVideoFile"><span>＋</span><b>اختر فيديو من هاتفك</b><small>MP4 أو WebM أو MOV · حتى 100MB</small></label>
     <input id="shortVideoFile" type="file" accept="video/mp4,video/webm,video/quicktime" hidden onchange="previewShortVideo(event)">
@@ -1267,9 +1266,16 @@ xoraSupabase.auth.onAuthStateChange(async(event,session)=>{
     <textarea id="shortVideoCaption" maxlength="500" placeholder="اكتب وصفاً للفيديو…"></textarea>
     <div class="shorts-create-foot"><small id="shortVideoStatus">شارك فيديو عمودياً وقصيراً مع الجميع</small><button id="shortVideoPublish" onclick="publishShortVideo()">نشر الفيديو</button></div>
   </div>
-  <div class="shorts-feed-title"><b>اكتشف الفيديوهات</b><small>الأحدث أولاً</small></div>
-  <div id="shortVideosFeed" class="shorts-feed"><div class="shorts-loading">جارٍ تحميل الفيديوهات…</div></div>
 </section>
+<style id="xora-shorts-two-page-layout">
+#shortVideosScreen .shorts-open-publish{display:block;width:auto;min-width:116px;margin:8px 0 14px auto;padding:9px 14px;border:1px solid #9d72b7;border-radius:12px;background:linear-gradient(120deg,#b98a4b,#8b5ab3);color:#160e1c;font-size:12px;font-weight:900}
+#shortVideosScreen .shorts-feed-title{margin-top:8px}
+#shortVideoPublishScreen .shorts-publish-page{margin-top:14px;padding:14px;background:linear-gradient(150deg,#21172b,#120e18);border:1px solid #59436a;border-radius:18px}
+#shortVideoPublishScreen .shorts-create-title{font-weight:900;color:#f5e8fa;margin-bottom:11px}
+#shortVideoPublishScreen .shorts-pick{display:flex;min-height:100px;flex-direction:column;align-items:center;justify-content:center;gap:5px;border:1px dashed #a879c4;border-radius:14px;background:#1b1423;color:#f5e8fa;text-align:center}
+#shortVideoPublishScreen .shorts-preview{display:block;width:100%;max-height:340px;aspect-ratio:9/16;object-fit:contain;background:#050407;border-radius:14px;margin-top:10px}
+#shortVideoPublishScreen #shortVideoCaption{display:block;width:100%;min-height:76px;resize:vertical;margin-top:10px;border:1px solid #49364f;border-radius:12px;background:#100d16;color:#fff;padding:11px;font:inherit;font-size:13px}
+</style>
 
 <style id="xora-shorts-social-actions">
 .shorts-social-actions{display:flex;align-items:center;gap:10px;margin:13px 0 10px;padding-bottom:11px;border-bottom:1px solid #ffffff12}
@@ -1462,6 +1468,10 @@ function openShortVideos(){
   showScreen('shortVideosScreen');
   loadShortVideos();
 }
+function openShortPublish(){
+  if(!xoraUser){openAuth();return}
+  showScreen('shortVideoPublishScreen');
+}
 function previewShortVideo(event){
   const file=event.target.files?.[0],status=document.getElementById('shortVideoStatus'),preview=document.getElementById('shortVideoPreview');
   if(xoraShortPreviewUrl){URL.revokeObjectURL(xoraShortPreviewUrl);xoraShortPreviewUrl=null}
@@ -1488,7 +1498,7 @@ async function publishShortVideo(){
     picker.value='';document.getElementById('shortVideoCaption').value='';
     const preview=document.getElementById('shortVideoPreview');preview.pause();preview.removeAttribute('src');preview.hidden=true;
     if(xoraShortPreviewUrl){URL.revokeObjectURL(xoraShortPreviewUrl);xoraShortPreviewUrl=null}
-    status.textContent='تم نشر الفيديو بنجاح 🎉';await loadShortVideos();
+    status.textContent='تم نشر الفيديو بنجاح 🎉';showScreen('shortVideosScreen');await loadShortVideos();
   }catch(error){status.textContent='تعذر النشر: '+(error.message||'خطأ غير معروف')}
   finally{button.disabled=false}
 }
