@@ -1078,7 +1078,8 @@ async function joinRealtimeKit(authToken,role,stream){
   try{await hostVideo.play()}catch(e){throw new Error('تم تشغيل الكاميرا لكن تعذر عرض صورتها على الشاشة: '+(e?.message||''))}
   if(meeting.self.videoEnabled===false)throw new Error('لم يتم تشغيل الكاميرا. تحقق من إذن الكاميرا ثم أعد المحاولة.');
  }
- bindLiveTapHearts();\n liveRoomHeartTotal=0;document.getElementById('liveRoomHeartCount').textContent='0';
+ bindLiveTapHearts();
+ liveRoomHeartTotal=0;document.getElementById('liveRoomHeartCount').textContent='0';
  toggleLiveGiftPanel(false);await refreshWalletBalance();await loadLiveRoomComments();
  subscribeLiveRoomComments();subscribeLiveRoomReactions();subscribeLiveGuestRequests();
  await loadLiveSupporters();await showLiveEntranceEffect(stream);
