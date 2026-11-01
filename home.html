@@ -1173,7 +1173,7 @@ async function ownerLoadPackages(){
 async function ownerSavePackage(){
  const label=document.getElementById('ownerPackageLabel').value.trim(),coins=Number(document.getElementById('ownerPackageCoins').value),price=Number(document.getElementById('ownerPackagePrice').value),order=Number(document.getElementById('ownerPackageOrder').value);
  if(!label||!Number.isSafeInteger(coins)||coins<1||!Number.isFinite(price)||price<=0||!Number.isInteger(order)){toast('أدخل اسم الباقة وعدد العملات والسعر الموجب والترتيب الصحيح');return}
- const id=ownerEditingPackageId||crypto.randomUUID();
+ const id=ownerEditingPackageId||null;
  const save=document.getElementById('ownerPackageSaveButton');if(save)save.disabled=true;
  const {error}=await xoraSupabase.rpc('owner_upsert_coin_package',{p_package_id:id,p_label:label,p_coins:coins,p_price_dzd:price,p_active:document.getElementById('ownerPackageActive').checked,p_display_order:order});
  if(save)save.disabled=false;
