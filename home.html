@@ -658,6 +658,52 @@
 .xoc-nav{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:14px 0}.xoc-nav button{background:#21182b;border:1px solid #44334f;border-radius:14px;color:#d8c8e5;min-height:72px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font-size:10px;padding:6px 2px}.xoc-nav svg{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.xoc-nav button.active{background:linear-gradient(145deg,#58386c,#33213e);border-color:#d4a6ff;color:white;box-shadow:0 4px 18px #b36cdd33}
 .xoc-panel{display:none}.xoc-panel.active{display:block}.xoc-title{font-weight:800;font-size:16px;margin:18px 0 9px;border-right:4px solid #d4a6ff;padding-right:9px}.xoc-card{background:#211a2b;border:1px solid #44324f;border-radius:16px;padding:13px;margin:9px 0}.xoc-muted{font-size:12px;color:#b9a9c8;line-height:1.7}#ownerScreen .owner-card{background:#211a2b;border:1px solid #44324f;border-radius:16px}
 @media(min-width:700px){.xoc-nav{grid-template-columns:repeat(7,1fr)}.xoc-stats{grid-template-columns:repeat(4,1fr)}}
+
+/* XORA OWNER COMMAND CENTER — visual upgrade */
+#ownerScreen{
+ background:
+ radial-gradient(ellipse at 12% 8%,rgba(137,79,194,.20),transparent 34%),
+ radial-gradient(ellipse at 92% 42%,rgba(205,157,87,.10),transparent 30%),
+ linear-gradient(160deg,#090a12 0%,#11101b 48%,#0b0b12 100%)!important;
+ color:#fbf8ff!important;
+}
+#ownerScreen:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;background-image:linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);background-size:28px 28px;mask-image:linear-gradient(to bottom,black,transparent 82%)}
+#ownerScreen .xoc-head{position:sticky;top:0;z-index:30;margin:-2px -14px 16px;padding:calc(env(safe-area-inset-top) + 9px) 14px 12px;background:rgba(12,11,19,.88);border-bottom:1px solid rgba(214,184,132,.20);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+#ownerScreen .xoc-brand{gap:11px}
+#ownerScreen .xoc-crown{width:48px;height:48px;border-radius:16px;background:linear-gradient(145deg,#f4d99b,#b47cdb 72%);box-shadow:0 8px 26px #bd8bd744,inset 0 1px #fff9}
+#ownerScreen .xoc-brand small{font-size:9px;letter-spacing:1.7px;color:#d9bb82}
+#ownerScreen .xoc-brand h2{font-size:19px;font-weight:950;letter-spacing:-.4px}
+#ownerScreen .xoc-back{border-color:#51445e;background:linear-gradient(145deg,#282131,#17151f);box-shadow:0 5px 15px #0005}
+#ownerScreen .xoc-stats{gap:9px;margin-bottom:16px}
+#ownerScreen .xoc-stat{position:relative;overflow:hidden;min-height:82px;padding:13px 12px;border:1px solid #393342;border-radius:17px;background:linear-gradient(145deg,rgba(40,34,51,.96),rgba(20,20,30,.98));box-shadow:0 8px 22px #0003,inset 0 1px #ffffff0b}
+#ownerScreen .xoc-stat:after{content:"";position:absolute;width:54px;height:54px;left:-19px;bottom:-25px;border-radius:50%;background:rgba(211,174,111,.10);filter:blur(2px)}
+#ownerScreen .xoc-stat b{font-size:24px;font-weight:950;letter-spacing:-.6px;color:#f2d59b;text-shadow:0 0 22px #e3bd7940}
+#ownerScreen .xoc-stat span{font-size:10px;color:#c4bacd;font-weight:700}
+#ownerScreen .xoc-nav{position:sticky;top:68px;z-index:25;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin:0 -4px 17px;padding:9px 4px;background:rgba(12,11,19,.90);border:1px solid #332b3c;border-radius:18px;backdrop-filter:blur(16px);box-shadow:0 10px 26px #0005}
+#ownerScreen .xoc-nav button{position:relative;min-height:69px;border-radius:13px;border:1px solid transparent;background:linear-gradient(145deg,#211d2a,#171620);color:#c8bdcf;font-weight:750;font-size:10px;transition:transform .18s,border-color .18s,background .18s;box-shadow:inset 0 1px #ffffff08}
+#ownerScreen .xoc-nav button:active{transform:scale(.96)}
+#ownerScreen .xoc-nav button.active{color:#fff;background:linear-gradient(145deg,#624279,#33243f);border-color:#c39bdd;box-shadow:0 5px 18px #a36ac044,inset 0 1px #ffffff26}
+#ownerScreen .xoc-nav button.active:after{content:"";position:absolute;bottom:4px;width:19px;height:2px;border-radius:9px;background:#f1d59b}
+#ownerScreen .xoc-nav svg{width:24px;height:24px;stroke-width:1.9;filter:drop-shadow(0 2px 4px #0005)}
+#ownerScreen .xoc-title{display:flex;align-items:center;gap:9px;font-size:15px;font-weight:900;color:#f4e6c7;margin:20px 0 10px;padding:0 10px 0 0;border:0;border-right:3px solid #d6b477;letter-spacing:-.2px}
+#ownerScreen .xoc-card,#ownerScreen .owner-card{border:1px solid #393341;border-radius:17px;background:linear-gradient(145deg,rgba(34,30,43,.98),rgba(20,20,29,.98));box-shadow:0 10px 28px #0003,inset 0 1px #ffffff09;padding:14px}
+#ownerScreen .xoc-muted{color:#bcb2c7;font-size:11px;line-height:1.8}
+#ownerScreen .xoc-panel{animation:xocPanelIn .22s ease both}
+@keyframes xocPanelIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+#ownerScreen .xora-action,#ownerScreen .owner-actions button.xora-action{min-height:42px;border:1px solid #b18b58;border-radius:12px;background:linear-gradient(110deg,#d6b477,#9d70bd)!important;color:#17121c!important;font-size:11px;font-weight:950;box-shadow:0 5px 16px #b18b5833,inset 0 1px #fff8;padding:10px 14px}
+#ownerScreen .xora-action:active{transform:translateY(1px);filter:brightness(.94)}
+#ownerScreen button.secondary{min-height:40px;border:1px solid #51465d;border-radius:11px;background:#24202c;color:#f2eafa;padding:9px 12px;font-size:11px}
+#ownerScreen .owner-panel-input,#ownerScreen input.owner-panel-input,#ownerScreen select.owner-panel-input,#ownerScreen textarea.owner-panel-input,#ownerScreen .owner-fields input{min-height:43px;border:1px solid #494052;background:#11111a;color:#fff;border-radius:12px;padding:11px 12px;font-size:12px;outline:none}
+#ownerScreen input:focus,#ownerScreen select:focus,#ownerScreen textarea:focus{border-color:#c6a0dc!important;box-shadow:0 0 0 3px #b47cdb22}
+#ownerScreen .owner-status{padding:7px 2px;color:#d1c1dc;font-size:11px}
+#ownerScreen .owner-inline{gap:8px}
+#ownerScreen .owner-inline .xora-action{flex:0 0 auto}
+#ownerScreen .owner-card-head{gap:11px}
+#ownerScreen .owner-card-head img{width:46px;height:46px;border:2px solid #c8a66c;box-shadow:0 3px 12px #0006}
+#ownerScreen .owner-danger{background:linear-gradient(110deg,#8f304c,#572039)!important;color:#fff!important;border-color:#bd607c!important}
+#ownerScreen .xoc-panel [id$="List"],#ownerScreen .xoc-panel [id$="Reports"],#ownerScreen .xoc-panel [id$="Rows"]{overflow-wrap:anywhere}
+@media(min-width:700px){#ownerScreen .xoc-nav{grid-template-columns:repeat(8,minmax(0,1fr));top:75px}#ownerScreen .xoc-stats{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:380px){#ownerScreen{padding-left:10px;padding-right:10px}#ownerScreen .xoc-nav{gap:5px}#ownerScreen .xoc-nav button{font-size:9px;min-height:65px}#ownerScreen .xoc-stat b{font-size:21px}}
 </style>
 <div class="xoc-head"><button class="xoc-back" onclick="closeScreen('ownerScreen')">← التطبيق</button><div class="xoc-brand"><div class="xoc-crown"><svg viewBox="0 0 24 24" width="27" height="27"><path d="m3 7 4 4 5-7 5 7 4-4-2 12H5L3 7Z" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></div><div><small>XORA LIVE · OWNER CONTROL</small><h2>مركز تحكم المالك</h2></div></div></div>
 <div class="xoc-stats"><div class="xoc-stat"><b id="ownerUsersCount">—</b><span>الأعضاء</span></div><div class="xoc-stat"><b id="ownerLiveCount">—</b><span>البثوث المباشرة</span></div><div class="xoc-stat"><b id="ownerPendingCount">—</b><span>طلبات الشحن</span></div><div class="xoc-stat"><b id="ownerCoinsCount">—</b><span>إجمالي العملات</span></div></div>
