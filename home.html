@@ -1295,6 +1295,34 @@ xoraSupabase.auth.onAuthStateChange(async(event,session)=>{
 .shorts-comment-form input:focus{border-color:#b58bcb}
 .shorts-comment-form button{border:0;border-radius:12px;padding:0 15px;background:linear-gradient(120deg,#d2aa70,#9b70bb);color:#1a1020;font-weight:900}
 .shorts-comment-form button:disabled{opacity:.45}
+/* Xora Shorts: fixed full-screen swipe viewer */
+#shortVideosScreen{height:100dvh;min-height:100dvh;overflow:hidden;display:none;flex-direction:column;padding:calc(env(safe-area-inset-top) + 8px) 0 calc(env(safe-area-inset-bottom) + 6px);background:#050407}
+#shortVideosScreen.show{display:flex}
+#shortVideosScreen .shorts-head{flex:0 0 auto;width:100%;padding:6px 12px 9px;top:0;margin:0;background:#09070df2}
+#shortVideosScreen .shorts-open-publish{position:absolute;z-index:8;top:calc(env(safe-area-inset-top) + 8px);right:105px;margin:0;min-width:0;padding:7px 10px;font-size:11px}
+#shortVideosScreen .shorts-feed-title{display:none}
+#shortVideosScreen #shortVideosFeed{flex:1 1 auto;min-height:0;height:100%;overflow:hidden;margin:0;padding:0}
+#shortVideosScreen .shorts-swipe-feed{height:100%;width:100%;overflow-y:auto;overscroll-behavior-y:contain;scroll-snap-type:y mandatory;scrollbar-width:none}
+#shortVideosScreen .shorts-swipe-feed::-webkit-scrollbar{display:none}
+#shortVideosScreen .shorts-card{position:relative;width:100%;height:100%;min-height:100%;max-width:none;margin:0;border:0;border-radius:0;overflow:hidden;scroll-snap-align:start;scroll-snap-stop:always;background:#050407}
+#shortVideosScreen .shorts-video-wrap{position:absolute;inset:0;display:block;background:#050407}
+#shortVideosScreen .shorts-card video{width:100%;height:100%;max-height:none;aspect-ratio:auto;object-fit:contain;background:#050407}
+#shortVideosScreen .shorts-meta{position:absolute;z-index:2;left:0;right:0;bottom:0;padding:60px 14px calc(env(safe-area-inset-bottom) + 14px);background:linear-gradient(0deg,#050407f2 0%,#050407a8 48%,transparent 100%);pointer-events:none}
+#shortVideosScreen .shorts-meta>*{pointer-events:auto}
+#shortVideosScreen .shorts-author{color:#fff;text-shadow:0 1px 5px #000}
+#shortVideosScreen .shorts-author img{width:36px;height:36px}
+#shortVideosScreen .shorts-caption{color:#fff;text-shadow:0 1px 5px #000;max-width:88%;max-height:72px;overflow:auto}
+#shortVideosScreen .shorts-date{color:#d4cbd9}
+#shortVideosScreen .shorts-social-actions{border:0;margin:8px 0 5px;padding:0}
+#shortVideosScreen .shorts-social-actions button{background:#261522e8}
+#shortVideosScreen .shorts-comments{max-height:116px;overflow:auto;margin-top:5px;padding:7px 9px;background:#100d16d9}
+#shortVideosScreen .shorts-comment-list{max-height:54px}
+#shortVideosScreen .shorts-comment-form{margin-top:6px}
+#shortVideosScreen .shorts-comment-form input{padding:8px}
+#shortVideosScreen .shorts-comment-form button{padding:0 11px}
+#shortVideosScreen .shorts-loading,#shortVideosScreen .shorts-empty{margin:14px;border-radius:14px}
+#shortVideosScreen .shorts-delete{margin-right:auto}
+@media(min-width:600px){#shortVideosScreen{max-width:520px;margin:auto}#shortVideosScreen .shorts-card{max-width:none}}
 </style>
 </body></html>
 
@@ -1527,10 +1555,11 @@ async function loadShortVideos(){
   for(const like of likes){(likesByVideo[like.video_id]??=[]).push(like)}
   for(const comment of comments){(commentsByVideo[comment.video_id]??=[]).push(comment)}
   root.innerHTML='';
+  const feed=document.createElement('div');feed.className='shorts-swipe-feed';
   for(const v of videos){
     const p=byId[v.user_id]||{},card=document.createElement('article');card.className='shorts-card';
     const wrap=document.createElement('div');wrap.className='shorts-video-wrap';
-    const video=document.createElement('video');video.src=v.video_url;video.controls=true;video.playsInline=true;video.preload='metadata';video.loop=true;video.setAttribute('controlsList','nodownload');
+    const video=document.createElement('video');video.src=v.video_url;video.controls=false;video.playsInline=true;video.preload='metadata';video.loop=true;video.muted=false;video.setAttribute('controlsList','nodownload');video.addEventListener('click',()=>{if(video.paused)video.play().catch(()=>{});else video.pause()});
     wrap.appendChild(video);
     const meta=document.createElement('div');meta.className='shorts-meta';
     const author=document.createElement('div');author.className='shorts-author';
@@ -1563,8 +1592,12 @@ async function loadShortVideos(){
     const send=document.createElement('button');send.type='submit';send.textContent='إرسال';send.disabled=!xoraUser;
     form.append(input,send);form.onsubmit=e=>{e.preventDefault();postShortVideoComment(v.id,input,send,commentCount,commentList)};
     commentArea.append(commentTitle,commentList,form);
-    meta.append(author,caption,date,actions,commentArea);card.append(wrap,meta);root.appendChild(card);
+    meta.append(author,caption,date,actions,commentArea);card.append(wrap,meta);feed.appendChild(card);
   }
+  root.appendChild(feed);
+  if(window.xoraShortObserver)window.xoraShortObserver.disconnect();
+  window.xoraShortObserver=new IntersectionObserver(entries=>{entries.forEach(entry=>{const video=entry.target.querySelector('video');if(!video)return;if(entry.isIntersecting&&entry.intersectionRatio>=0.65){document.querySelectorAll('#shortVideosFeed video').forEach(other=>{if(other!==video)other.pause()});video.play().catch(()=>{})}else video.pause()})},{root:feed,threshold:[0,0.65,1]});
+  feed.querySelectorAll('.shorts-card').forEach(card=>window.xoraShortObserver.observe(card));
 }
 async function toggleShortVideoLike(videoId,button){
   if(!xoraUser){openAuth();return}
