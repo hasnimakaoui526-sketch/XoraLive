@@ -32,6 +32,26 @@ jobs:
           cp android-fixes/MainActivity.java app/src/main/java/com/xoralive/app/MainActivity.java
           cp android-fixes/AndroidManifest.xml app/src/main/AndroidManifest.xml
           cp home.html app/src/main/assets/home.html
+          # Install the dedicated premium launcher icon without changing app behavior.
+          mkdir -p app/src/main/res/drawable
+          cat > app/src/main/res/drawable/xora_launcher.xml <<'ICON'
+          <vector xmlns:android="http://schemas.android.com/apk/res/android"
+              android:width="108dp"
+              android:height="108dp"
+              android:viewportWidth="108"
+              android:viewportHeight="108">
+              <path android:fillColor="#100711" android:pathData="M18,2 L90,2 Q106,2 106,18 L106,90 Q106,106 90,106 L18,106 Q2,106 2,90 L2,18 Q2,2 18,2 Z"/>
+              <path android:fillColor="#00000000" android:strokeColor="#F52CB8" android:strokeWidth="2.4" android:pathData="M18,5 L90,5 Q103,5 103,18 L103,90 Q103,103 90,103 L18,103 Q5,103 5,90 L5,18 Q5,5 18,5 Z"/>
+              <path android:fillColor="#00000000" android:strokeColor="#8D176E" android:strokeWidth="5" android:pathData="M54,31 A25,25 0,1 1,53.9 31"/>
+              <path android:fillColor="#FF36C5" android:pathData="M47,41 Q45,39 45,43 L45,65 Q45,69 49,67 L68,56 Q72,54 68,52 Z"/>
+              <path android:fillColor="#FFC85A" android:pathData="M29,28 L36,16 L45,25 L54,11 L63,25 L72,16 L79,28 L75,35 L33,35 Z"/>
+              <path android:fillColor="#FFF0B4" android:pathData="M36,19 L39,25 L35,25 Z M54,15 L57,23 L51,23 Z M72,19 L75,25 L69,25 Z"/>
+              <path android:fillColor="#D92AA5" android:pathData="M75,70 L91,70 Q96,70 96,75 L96,83 Q96,88 91,88 L83,88 L77,93 L78,88 L75,88 Q70,88 70,83 L70,75 Q70,70 75,70 Z"/>
+              <path android:fillColor="#FFFFFF" android:pathData="M77,78 A2,2 0,1 0,81 78 A2,2 0,1 0,77 78 M83,78 A2,2 0,1 0,87 78 A2,2 0,1 0,83 78 M89,78 A2,2 0,1 0,93 78 A2,2 0,1 0,89 78"/>
+              <path android:fillColor="#FFD36C" android:pathData="M18,54 L20,59 L25,61 L20,63 L18,68 L16,63 L11,61 L16,59 Z M86,39 L88,43 L92,45 L88,47 L86,51 L84,47 L80,45 L84,43 Z"/>
+          </vector>
+          ICON
+          test -s app/src/main/res/drawable/xora_launcher.xml
           # Reveal the login UI immediately; the previous 8-second splash timer left
           # the app looking blank during startup on some Android WebViews.
           python3 - <<'PY'
