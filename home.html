@@ -1252,6 +1252,25 @@ xoraSupabase.auth.onAuthStateChange(async(event,session)=>{
   <div id="shortVideosFeed" class="shorts-feed"><div class="shorts-loading">جارٍ تحميل الفيديوهات…</div></div>
 </section>
 
+<style id="xora-shorts-social-actions">
+.shorts-social-actions{display:flex;align-items:center;gap:10px;margin:13px 0 10px;padding-bottom:11px;border-bottom:1px solid #ffffff12}
+.shorts-social-actions button{border:1px solid #62404f;border-radius:22px;padding:9px 15px;background:#281522;color:#ff9db9;font-weight:850;font-size:13px}
+.shorts-social-actions .shorts-like.is-liked{background:linear-gradient(120deg,#7b254d,#41182f);border-color:#d65a89;color:#ffb2ca;box-shadow:0 0 18px #e94e8b25}
+.shorts-social-actions .shorts-like span{font-variant-numeric:tabular-nums}
+.shorts-comment-count{font-size:12px;color:#d8c6df}
+.shorts-comments{margin-top:8px;padding:12px;border:1px solid #3c2c46;border-radius:15px;background:linear-gradient(145deg,#1b1422,#110e17)}
+.shorts-comments-title{font-size:12px;font-weight:900;color:#e8c98b;margin-bottom:8px}
+.shorts-comment-list{display:flex;flex-direction:column;gap:7px;max-height:190px;overflow:auto}
+.shorts-comment{display:flex;align-items:flex-start;gap:4px;flex-wrap:wrap;padding:7px 9px;border-radius:10px;background:#ffffff07;color:#e9dfed;font-size:12px;line-height:1.6;overflow-wrap:anywhere}
+.shorts-comment b{color:#d9b77f}
+.shorts-no-comments{padding:10px;color:#9e91a7;font-size:11px;text-align:center}
+.shorts-comment-delete{margin-right:auto;border:0;background:none;color:#d68ba6;font-size:10px}
+.shorts-comment-form{display:flex;gap:7px;margin-top:10px}
+.shorts-comment-form input{flex:1;min-width:0;background:#100d16;border:1px solid #4a3854;border-radius:12px;padding:11px;color:#fff;font:inherit;font-size:12px;outline:none}
+.shorts-comment-form input:focus{border-color:#b58bcb}
+.shorts-comment-form button{border:0;border-radius:12px;padding:0 15px;background:linear-gradient(120deg,#d2aa70,#9b70bb);color:#1a1020;font-weight:900}
+.shorts-comment-form button:disabled{opacity:.45}
+</style>
 </body></html>
 
 <style id="xora-live-portrait-stage-final">
@@ -1460,9 +1479,24 @@ async function loadShortVideos(){
   const {data:videos,error}=await xoraSupabase.from('short_videos').select('id,user_id,video_url,caption,created_at').order('created_at',{ascending:false}).limit(40);
   if(error){root.textContent='تعذر تحميل الفيديوهات: '+error.message;return}
   if(!videos?.length){root.innerHTML='<div class="shorts-empty">لا توجد فيديوهات بعد. كن أول من ينشر 🎬</div>';return}
-  const ids=[...new Set(videos.map(v=>v.user_id))];
-  const {data:profiles}=await xoraSupabase.from('profiles').select('id,username,avatar_url').in('id',ids);
-  const byId=Object.fromEntries((profiles||[]).map(p=>[p.id,p]));
+  const videoIds=videos.map(v=>v.id),userIds=[...new Set(videos.map(v=>v.user_id))];
+  const [profilesResult,likesResult,commentsResult]=await Promise.all([
+    xoraSupabase.from('profiles').select('id,username,avatar_url').in('id',userIds),
+    xoraSupabase.from('short_video_likes').select('video_id,user_id').in('video_id',videoIds),
+    xoraSupabase.from('short_video_comments').select('id,video_id,user_id,body,created_at').in('video_id',videoIds).order('created_at',{ascending:false}).limit(500)
+  ]);
+  if(likesResult.error||commentsResult.error){root.textContent='تعذر تحميل التفاعلات: '+(likesResult.error||commentsResult.error).message;return}
+  const likes=likesResult.data||[],comments=commentsResult.data||[];
+  const profileIds=[...new Set([...userIds,...comments.map(c=>c.user_id)])];
+  let commentProfiles=profilesResult.data||[];
+  if(profileIds.length){
+    const pr=await xoraSupabase.from('profiles').select('id,username,avatar_url').in('id',profileIds);
+    if(!pr.error)commentProfiles=pr.data||commentProfiles;
+  }
+  const byId=Object.fromEntries(commentProfiles.map(p=>[p.id,p]));
+  const likesByVideo={},commentsByVideo={};
+  for(const like of likes){(likesByVideo[like.video_id]??=[]).push(like)}
+  for(const comment of comments){(commentsByVideo[comment.video_id]??=[]).push(comment)}
   root.innerHTML='';
   for(const v of videos){
     const p=byId[v.user_id]||{},card=document.createElement('article');card.className='shorts-card';
@@ -1477,8 +1511,68 @@ async function loadShortVideos(){
     if(xoraUser&&v.user_id===xoraUser.id){const del=document.createElement('button');del.className='shorts-delete';del.textContent='حذف الفيديو';del.onclick=()=>deleteShortVideo(v.id,v.video_url);author.appendChild(del)}
     const caption=document.createElement('div');caption.className='shorts-caption';caption.textContent=v.caption||'';
     const date=document.createElement('div');date.className='shorts-date';date.textContent=new Date(v.created_at).toLocaleString('ar');
-    meta.append(author,caption,date);card.append(wrap,meta);root.appendChild(card);
+    const actions=document.createElement('div');actions.className='shorts-social-actions';
+    const videoLikes=likesByVideo[v.id]||[],liked=!!xoraUser&&videoLikes.some(x=>x.user_id===xoraUser.id);
+    const likeBtn=document.createElement('button');likeBtn.className='shorts-like'+(liked?' is-liked':'');likeBtn.innerHTML=(liked?'♥':'♡')+' <span>'+videoLikes.length+'</span> إعجاب';likeBtn.setAttribute('aria-label','إعجاب بالفيديو');likeBtn.onclick=()=>toggleShortVideoLike(v.id,likeBtn);
+    const commentCount=document.createElement('span');commentCount.className='shorts-comment-count';commentCount.textContent='💬 '+(commentsByVideo[v.id]||[]).length+' تعليق';
+    actions.append(likeBtn,commentCount);
+    const commentArea=document.createElement('div');commentArea.className='shorts-comments';
+    const commentTitle=document.createElement('div');commentTitle.className='shorts-comments-title';commentTitle.textContent='التعليقات';
+    const commentList=document.createElement('div');commentList.className='shorts-comment-list';
+    const videoComments=(commentsByVideo[v.id]||[]).slice(0,5);
+    if(!videoComments.length){const empty=document.createElement('div');empty.className='shorts-no-comments';empty.textContent='كن أول من يعلّق على هذا الفيديو';commentList.appendChild(empty)}
+    for(const c of videoComments){
+      const row=document.createElement('div');row.className='shorts-comment';
+      const who=document.createElement('b');who.textContent=(byId[c.user_id]?.username||'مستخدم Xora')+' ';
+      const body=document.createElement('span');body.textContent=c.body;
+      row.append(who,body);
+      if(xoraUser&&c.user_id===xoraUser.id){const remove=document.createElement('button');remove.className='shorts-comment-delete';remove.textContent='حذف';remove.onclick=()=>deleteShortVideoComment(c.id,v.id);row.appendChild(remove)}
+      commentList.appendChild(row);
+    }
+    const form=document.createElement('form');form.className='shorts-comment-form';
+    const input=document.createElement('input');input.type='text';input.maxLength=1000;input.placeholder=xoraUser?'اكتب تعليقاً…':'سجّل الدخول للتعليق';input.disabled=!xoraUser;input.setAttribute('aria-label','اكتب تعليقاً على الفيديو');
+    const send=document.createElement('button');send.type='submit';send.textContent='إرسال';send.disabled=!xoraUser;
+    form.append(input,send);form.onsubmit=e=>{e.preventDefault();postShortVideoComment(v.id,input,send,commentCount,commentList)};
+    commentArea.append(commentTitle,commentList,form);
+    meta.append(author,caption,date,actions,commentArea);card.append(wrap,meta);root.appendChild(card);
   }
+}
+async function toggleShortVideoLike(videoId,button){
+  if(!xoraUser){openAuth();return}
+  button.disabled=true;
+  try{
+    const existing=await xoraSupabase.from('short_video_likes').select('id').eq('video_id',videoId).eq('user_id',xoraUser.id).maybeSingle();
+    if(existing.error)throw existing.error;
+    let result;
+    if(existing.data)result=await xoraSupabase.from('short_video_likes').delete().eq('id',existing.data.id).eq('user_id',xoraUser.id);
+    else result=await xoraSupabase.from('short_video_likes').insert({video_id:videoId,user_id:xoraUser.id});
+    if(result.error)throw result.error;
+    const count=await xoraSupabase.from('short_video_likes').select('id',{count:'exact',head:true}).eq('video_id',videoId);
+    if(count.error)throw count.error;
+    const liked=!existing.data;button.classList.toggle('is-liked',liked);button.innerHTML=(liked?'♥':'♡')+' <span>'+(count.count??0)+'</span> إعجاب';
+  }catch(error){toast('تعذر تسجيل الإعجاب: '+(error.message||'خطأ'))}
+  finally{button.disabled=false}
+}
+async function postShortVideoComment(videoId,input,button,countNode,listNode){
+  if(!xoraUser){openAuth();return}
+  const body=input.value.trim();if(!body)return;
+  button.disabled=true;
+  try{
+    const {error}=await xoraSupabase.from('short_video_comments').insert({video_id:videoId,user_id:xoraUser.id,body});
+    if(error)throw error;
+    input.value='';
+    const {count,error:countError}=await xoraSupabase.from('short_video_comments').select('id',{count:'exact',head:true}).eq('video_id',videoId);
+    if(countError)throw countError;
+    countNode.textContent='💬 '+(count??0)+' تعليق';
+    await loadShortVideos();
+  }catch(error){toast('تعذر نشر التعليق: '+(error.message||'خطأ'))}
+  finally{button.disabled=false}
+}
+async function deleteShortVideoComment(commentId,videoId){
+  if(!xoraUser||!confirm('هل تريد حذف تعليقك؟'))return;
+  const {error}=await xoraSupabase.from('short_video_comments').delete().eq('id',commentId).eq('user_id',xoraUser.id);
+  if(error){toast('تعذر حذف التعليق: '+error.message);return}
+  await loadShortVideos();
 }
 async function deleteShortVideo(id,url){
   if(!xoraUser||!confirm('هل تريد حذف هذا الفيديو نهائياً؟'))return;
