@@ -1733,13 +1733,14 @@ async function loadShortVideos(){
   const feed=document.createElement('div');feed.className='shorts-swipe-feed';
   for(const v of videos){
     const p=v.demo?{username:v.demoName,avatar_url:v.demoAvatar}:byId[v.user_id]||{},card=document.createElement('article');card.className='shorts-card'+(v.demo?' shorts-demo-card':'');
+    if(v.demo){const banner=document.createElement('div');banner.className='shorts-demo-banner';banner.textContent='⚠ حساب تجريبي وهمي — ليس مستخدماً حقيقياً';card.appendChild(banner)}
     const wrap=document.createElement('div');wrap.className='shorts-video-wrap';
     const video=document.createElement('video');video.src=v.video_url;video.controls=false;video.playsInline=true;video.preload='metadata';video.loop=true;video.muted=false;video.setAttribute('controlsList','nodownload');video.addEventListener('click',()=>{if(video.paused)video.play().catch(()=>{});else video.pause()});
     wrap.appendChild(video);
     const meta=document.createElement('div');meta.className='shorts-meta';
     const author=document.createElement('div');author.className='shorts-author';
     const avatar=document.createElement('img');avatar.src=p.avatar_url||'https://placehold.co/80x80/302139/e8c98b?text=X';avatar.alt='';
-    const name=document.createElement('button');name.type='button';name.className='profile-link';name.textContent=p.username||'مستخدم Xora';
+    const name=document.createElement('button');name.type='button';name.className='profile-link';name.textContent=(p.username||'مستخدم Xora')+(v.demo?' · تجريبي':'');
     if(!v.demo)name.onclick=()=>openUserProfile(v.user_id,p.username||'مستخدم Xora',p.avatar_url||'');
     author.append(avatar,name);
     if(v.demo){const demoTag=document.createElement('span');demoTag.className='shorts-demo-tag';demoTag.textContent='حساب تجريبي';author.appendChild(demoTag)}
@@ -1833,7 +1834,7 @@ async function deleteShortVideo(id,url){
 
 
 <style id="xora-shorts-demo-accounts">
-.shorts-demo-tag{margin-right:auto;padding:4px 8px;border:1px solid #b78a50;border-radius:20px;color:#e8c98b;background:#b78a5018;font-size:9px;font-weight:800}
+.shorts-demo-tag{margin-right:auto;padding:5px 9px;border:1px solid #ffbf52;border-radius:20px;color:#211300;background:#ffd36b;font-size:10px;font-weight:950;white-space:nowrap}.shorts-demo-banner{display:block;position:relative;z-index:2;padding:10px 12px;background:linear-gradient(90deg,#7b271d,#c34b28);border-bottom:2px solid #ffc45b;color:#fff;font-size:12px;font-weight:950;text-align:center;letter-spacing:.1px;text-shadow:0 1px 2px #0008}
 .shorts-demo-note{margin-top:10px;padding:8px 10px;border:1px solid #8c6a4533;border-radius:10px;color:#bca9c7;background:#ffffff06;font-size:10px;line-height:1.6}
 .shorts-demo-card{border-color:#705536}
 </style>
