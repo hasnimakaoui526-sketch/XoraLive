@@ -644,6 +644,29 @@
 #realLiveStreams .stream{background:linear-gradient(145deg,#261b30,#120e18)}
 #realLiveStreams .stream img{opacity:.82}
 </style>
+<style id="xora-fixed-viewport">
+html,body{
+ width:100%!important;
+ height:100%!important;
+ min-height:0!important;
+ margin:0!important;
+ overflow:hidden!important;
+ overscroll-behavior:none!important;
+ touch-action:pan-x pan-y!important
+}
+.app{
+ width:100%!important;
+ height:100vh!important;
+ height:100dvh!important;
+ min-height:0!important;
+ max-height:100dvh!important;
+ overflow-x:hidden!important;
+ overflow-y:auto!important;
+ overscroll-behavior-y:contain!important;
+ -webkit-overflow-scrolling:touch;
+ touch-action:pan-y!important
+}
+</style>
 </head>
 <body><main class="app">
 <header class="top"><div class="brand">Xora <span>live</span></div><div class="actions"><button class="wallet" onclick="showWalletInfo()">XONA <span id="walletCoins">…</span></button><button class="iconbtn" aria-label="الرسائل" onclick="openInbox()">✉</button><button class="iconbtn" aria-label="الإشعارات" onclick="openNotifications()">♧</button><button id="ownerEntry" class="iconbtn owner-entry" aria-label="لوحة المالك" title="لوحة المالك" onclick="openOwnerPanel()">♛</button></div></header>
