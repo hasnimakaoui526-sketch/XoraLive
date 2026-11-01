@@ -1026,7 +1026,7 @@ async function joinRealtimeKit(authToken,role,stream){
  const meeting=await window.RealtimeKitClient.init({authToken,defaults:{audio:role==='host'||role==='guest',video:role==='host'||role==='guest'}});
  activeMeeting=meeting;activeLiveRole=role;liveRoomStreamKey=String(stream.id||'');
  document.getElementById('liveRoomScreen').classList.toggle('host-mode',role==='host');
- document.getElementById('liveHostCommentStat').textContent='💬 0 تعليق';
+ const hostCommentStat=document.getElementById('liveHostCommentStat');if(hostCommentStat)hostCommentStat.textContent='💬 0 تعليق';
  document.getElementById('liveRoomTitle').textContent=stream.title||'بث مباشر';
  const root=document.getElementById('realtimekitRoom');root.innerHTML='';root.style.position='relative';root.style.background='#000';
  let hostVideo=null;
