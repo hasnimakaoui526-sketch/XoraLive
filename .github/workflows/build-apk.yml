@@ -31,6 +31,7 @@ jobs:
           cp android-fixes/MainActivity.java app/src/main/java/com/xoralive/app/MainActivity.java
           cp android-fixes/AndroidManifest.xml app/src/main/AndroidManifest.xml
           cp home.html app/src/main/assets/home.html
+          python3 android-fixes/apply-live-screen-fix.py
           grep -q 'handleXoraAuth' app/src/main/assets/index.html
           grep -q 'bootXoraAuthenticatedApp' app/src/main/assets/home.html
       - name: Set up Java 17
