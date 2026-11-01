@@ -805,7 +805,7 @@
  <div id="realtimekitRoom" style="background:#120e18"></div>
  
  <div class="live-room-statusbar"><span class="live-status-dot"></span><div id="liveRoomStatus" class="profile-bio">جارٍ الاتصال بالبث…</div></div>
- <div id="liveRoomReactions"><button id="liveHeartBtn" onclick="sendLiveHeart()">❤️ أرسل قلباً</button><span id="liveRoomHeartCount">0</span><button id="liveGiftBtn" onclick="toggleLiveGiftPanel()">🎁 الهدايا</button><span id="liveRoomWallet">XONA <b id="liveRoomWalletCoins">…</b></span></div>
+ <div id="liveRoomReactions"><button id="liveHeartBtn" onclick="sendLiveHeart()" aria-hidden="true" tabindex="-1">❤️</button><span id="liveRoomHeartCount">0</span><button id="liveGiftBtn" onclick="toggleLiveGiftPanel()" aria-label="الهدايا" title="الهدايا">🌹</button><span id="liveRoomWallet">XONA <b id="liveRoomWalletCoins">…</b></span></div>
  <div id="liveRoomActivity" aria-live="polite">تفاعل مع المذيع بالقلوب والهدايا</div><div id="liveEntranceOverlay" aria-live="polite"></div>
  <button id="liveGuestRequestBtn" onclick="requestLiveGuest()">🎤 اطلب الانضمام إلى مقعد ضيف</button>
  <div id="liveGuestPanel"><div id="liveGuestRequestList" class="xora-muted">لا توجد طلبات حالياً</div></div>
@@ -882,7 +882,7 @@ let liveRoomReactionsChannel=null,liveRoomHeartTotal=0;
 function popLiveHeart(){const room=document.getElementById('liveRoomScreen');if(!room)return;const el=document.createElement('span');el.className='live-float-heart';el.textContent=['💗','💖','❤️','💕'][Math.floor(Math.random()*4)];el.style.left=(12+Math.random()*76)+'%';room.appendChild(el);setTimeout(()=>el.remove(),2100)}
 function popLiveGift(emoji){const room=document.getElementById('liveRoomScreen');if(!room)return;const el=document.createElement('span');el.className='live-float-gift';el.textContent=emoji||'🎁';room.appendChild(el);setTimeout(()=>el.remove(),2200)}
 function toggleLiveGiftPanel(force){const p=document.getElementById('liveGiftPanel');if(!p)return;p.classList.toggle('show',force===undefined?!p.classList.contains('show'):!!force)}
-async function sendLiveHeart(){if(!xoraUser){openAuth();return}if(!liveRoomStreamKey)return;const b=document.getElementById('liveHeartBtn');b.disabled=true;const {data,error}=await xoraSupabase.rpc('send_stream_heart',{p_stream_id:liveRoomStreamKey});b.disabled=false;if(error){toast(error.message);return}liveRoomHeartTotal++;document.getElementById('liveRoomHeartCount').textContent=liveRoomHeartTotal.toLocaleString('ar');popLiveHeart()}
+let liveHeartSending=false;async function sendLiveHeart(){if(!xoraUser){openAuth();return}if(!liveRoomStreamKey||liveHeartSending)return;const b=document.getElementById('liveHeartBtn');liveHeartSending=true;if(b)b.disabled=true;try{const {data,error}=await xoraSupabase.rpc('send_stream_heart',{p_stream_id:liveRoomStreamKey});if(error){toast(error.message);return}liveRoomHeartTotal++;const count=document.getElementById('liveRoomHeartCount');if(count)count.textContent=liveRoomHeartTotal.toLocaleString('ar');popLiveHeart()}finally{liveHeartSending=false;if(b)b.disabled=false}}\nlet liveTapBurstCount=0,liveTapBurstTimer=null,liveTapLastAt=0,liveTapAutoBound=false;function bindLiveTapHearts(){const stage=document.getElementById('realtimekitRoom');if(!stage||liveTapAutoBound)return;liveTapAutoBound=true;stage.addEventListener('pointerup',e=>{if(!liveRoomStreamKey||!document.getElementById('liveRoomScreen')?.classList.contains('show'))return;const target=e.target;if(target?.closest?.('button,input,textarea,select,[role=button],.live-room-top,#liveRoomReactions,#liveGiftPanel'))return;const now=Date.now();if(now-liveTapLastAt>1250)liveTapBurstCount=0;liveTapLastAt=now;liveTapBurstCount++;if(liveTapBurstTimer)clearTimeout(liveTapBurstTimer);if(liveTapBurstCount>=3){const burst=Math.min(liveTapBurstCount,8);liveTapBurstCount=0;for(let i=0;i<burst;i++)setTimeout(()=>{if(liveRoomStreamKey)sendLiveHeart()},i*220)}liveTapBurstTimer=setTimeout(()=>{liveTapBurstCount=0;liveTapBurstTimer=null},1250)},{passive:true})}
 async function sendLiveGift(code){if(!xoraUser){openAuth();return}if(!liveRoomStreamKey)return;const {data,error}=await xoraSupabase.rpc('send_stream_gift',{p_stream_id:liveRoomStreamKey,p_gift_code:code});if(error){toast(error.message);return}toggleLiveGiftPanel(false);await refreshWalletBalance();const msg='أرسلت '+data.gift_emoji+' '+data.gift_name+' للمذيع'+(data.used_inventory?' من مخزونك':'');document.getElementById('liveRoomActivity').textContent=msg;popLiveGift(data.gift_emoji);if(Number(data.coins)>=250){const epic=document.querySelector('.live-float-gift:last-child');if(epic)epic.classList.add('epic')}await loadLiveSupporters();toast(msg+' · المتبقي '+(data.unlimited_balance?'∞':Number(data.sender_balance).toLocaleString('ar'))+' XONA')}
 function subscribeLiveRoomReactions(){if(liveRoomReactionsChannel||!liveRoomStreamKey)return;liveRoomReactionsChannel=xoraSupabase.channel('live-room-reactions-'+liveRoomStreamKey)
  .on('postgres_changes',{event:'INSERT',schema:'public',table:'stream_hearts',filter:'stream_id=eq.'+liveRoomStreamKey},payload=>{if(payload.new.sender_id===xoraUser?.id)return;liveRoomHeartTotal++;document.getElementById('liveRoomHeartCount').textContent=liveRoomHeartTotal.toLocaleString('ar');popLiveHeart()})
@@ -1078,7 +1078,7 @@ async function joinRealtimeKit(authToken,role,stream){
   try{await hostVideo.play()}catch(e){throw new Error('تم تشغيل الكاميرا لكن تعذر عرض صورتها على الشاشة: '+(e?.message||''))}
   if(meeting.self.videoEnabled===false)throw new Error('لم يتم تشغيل الكاميرا. تحقق من إذن الكاميرا ثم أعد المحاولة.');
  }
- liveRoomHeartTotal=0;document.getElementById('liveRoomHeartCount').textContent='0';
+ bindLiveTapHearts();\n liveRoomHeartTotal=0;document.getElementById('liveRoomHeartCount').textContent='0';
  toggleLiveGiftPanel(false);await refreshWalletBalance();await loadLiveRoomComments();
  subscribeLiveRoomComments();subscribeLiveRoomReactions();subscribeLiveGuestRequests();
  await loadLiveSupporters();await showLiveEntranceEffect(stream);
@@ -1842,4 +1842,13 @@ async function deleteShortVideo(id,url){
 #liveRoomScreen #liveHostDashboard,#liveRoomScreen #liveSupporters{display:none!important}
 #liveRoomScreen #realtimekitRoom{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-height:0!important;max-height:none!important;margin:0!important;border:0!important;border-radius:0!important;z-index:1!important}
 #liveRoomScreen #liveRoomComments,#liveRoomScreen #liveRoomReactions,#liveRoomScreen #liveGuestRequestBtn,#liveRoomScreen #liveGuestPanel{z-index:10!important}
+</style>
+
+<style id="xora-rose-gift-button-and-tap-hearts">
+/* Compact rose gift control; hearts are sent by tapping the live video */
+#liveRoomScreen #liveRoomReactions{position:absolute!important;z-index:35!important;right:12px!important;left:auto!important;bottom:calc(env(safe-area-inset-bottom) + 14px)!important;top:auto!important;width:auto!important;height:auto!important;min-height:0!important;display:flex!important;align-items:center!important;gap:0!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;pointer-events:none!important}
+#liveRoomScreen #liveHeartBtn,#liveRoomScreen #liveRoomHeartCount{display:none!important}
+#liveRoomScreen #liveGiftBtn{pointer-events:auto!important;width:48px!important;height:48px!important;min-width:48px!important;min-height:48px!important;padding:0!important;border:1px solid #d9b16d!important;border-radius:16px!important;background:linear-gradient(145deg,#e8c98b,#a85d92)!important;color:#241329!important;font-size:25px!important;line-height:1!important;box-shadow:0 5px 20px #0008!important}
+#liveRoomScreen #liveRoomWallet{display:none!important}
+#liveRoomScreen #liveGiftPanel{z-index:45!important;bottom:calc(env(safe-area-inset-bottom) + 76px)!important;left:10px!important;right:10px!important}
 </style>
