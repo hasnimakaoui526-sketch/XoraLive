@@ -641,6 +641,15 @@
 <div class="owner-section-title">إدارة الأعضاء والصلاحيات</div>
 <div class="owner-inline"><input class="owner-panel-input" id="ownerUserSearch" placeholder="ابحث باسم المستخدم…" oninput="ownerSearchUsers()"><button class="xora-action" onclick="ownerLoadUsers()">تحديث</button></div>
 <div id="ownerUsersList"><p class="owner-status">جارٍ تحميل الأعضاء…</p></div>
+<div class="owner-section-title">إدارة البثوث المباشرة والغرف الصوتية</div>
+<div class="owner-card">
+ <div class="owner-inline"><b>البثوث المرئية</b><button class="xora-action" onclick="ownerLoadLiveRooms()">تحديث البثوث</button></div>
+ <div id="ownerLiveRoomsList" class="owner-status">جارٍ تحميل البثوث…</div>
+</div>
+<div class="owner-card">
+ <div class="owner-inline"><b>الغرف الصوتية</b><button class="xora-action" onclick="ownerLoadVoiceRooms()">تحديث الغرف</button></div>
+ <div id="ownerVoiceRoomsList" class="owner-status">جارٍ تحميل الغرف…</div>
+</div>
 <div class="owner-section-title">التحكم التفصيلي في صلاحيات الإدارة</div>
 <div class="owner-card">
  <p class="owner-status">هذه الصلاحيات تُطبّق من قاعدة البيانات أيضاً، ولا تعتمد على إخفاء الأزرار فقط. المالك يحتفظ دائماً بكامل الصلاحيات.</p>
@@ -1074,7 +1083,7 @@ function ownerDmRenderMessages(scrollBottom=true){
  if(scrollBottom)root.scrollTop=root.scrollHeight;document.getElementById('ownerDmThreadStatus').textContent='آخر مزامنة: '+new Date().toLocaleTimeString('ar')+' · تحديث تلقائي كل ثانيتين تقريباً';
 }
 function ownerDmCloseThread(){ownerDmSelected=null;ownerDmLastMessageAt=null;if(ownerDmPollTimer){clearInterval(ownerDmPollTimer);ownerDmPollTimer=null}document.getElementById('ownerDmThreadPanel').style.display='none';document.getElementById('ownerDmConversationList').style.display='block';ownerDmLoadConversations()}
-async function ownerLoadAll(){if(!xoraIsAppOwner)return;ownerSetStatus('ownerPanelStatus','جارٍ تحديث بيانات الإدارة…');await Promise.all([ownerLoadStats(),ownerLoadUsers(),ownerLoadPurchases(),ownerLoadPaymentMethods(),ownerDmLoadConversations(),ownerLoadPermissions()]);ownerSetStatus('ownerPanelStatus','تم تحديث بيانات لوحة المالك.')}
+async function ownerLoadAll(){if(!xoraIsAppOwner)return;ownerSetStatus('ownerPanelStatus','جارٍ تحديث بيانات الإدارة…');await Promise.all([ownerLoadStats(),ownerLoadUsers(),ownerLoadPurchases(),ownerLoadPaymentMethods(),ownerDmLoadConversations(),ownerLoadPermissions(),ownerLoadLiveRooms(),ownerLoadVoiceRooms()]);ownerSetStatus('ownerPanelStatus','تم تحديث بيانات لوحة المالك.')}
 async function ownerLoadStats(){const [u,l,p,w]=await Promise.all([xoraSupabase.from('profiles').select('id',{count:'exact',head:true}),xoraSupabase.from('streams').select('id',{count:'exact',head:true}).eq('status','live'),xoraSupabase.from('coin_purchase_requests').select('id',{count:'exact',head:true}).eq('status','pending'),xoraSupabase.from('wallets').select('coins')]);document.getElementById('ownerUsersCount').textContent=u.count??'—';document.getElementById('ownerLiveCount').textContent=l.count??'—';document.getElementById('ownerPendingCount').textContent=p.count??'—';document.getElementById('ownerCoinsCount').textContent=(w.data||[]).reduce((n,x)=>n+Number(x.coins||0),0).toLocaleString('ar')}
 async function ownerLoadUsers(){if(!xoraIsAppOwner)return;const q=document.getElementById('ownerUserSearch').value.trim();const root=document.getElementById('ownerUsersList');root.textContent='جارٍ تحميل الأعضاء…';const {data,error}=await xoraSupabase.rpc('owner_list_users',{p_search:q||null,p_limit:100});if(error){root.textContent='تعذر تحميل الأعضاء: '+error.message;return}ownerUsersCache=Array.isArray(data)?data:[];ownerRenderUsers(ownerUsersCache)}
 function ownerSearchUsers(){const q=document.getElementById('ownerUserSearch').value.trim().toLowerCase();ownerRenderUsers(ownerUsersCache.filter(u=>(u.username||'').toLowerCase().includes(q)))}
@@ -1113,6 +1122,50 @@ xoraSupabase.auth.onAuthStateChange(async(event,session)=>{
   if(event==='SIGNED_IN'||event==='TOKEN_REFRESHED'){await refreshXoraProfile();await checkOwnerAccess();await refreshMyAppRole();await xoraSupabase.rpc('update_my_presence');}
 });
 
+async function ownerLoadLiveRooms(){
+ if(!xoraIsAppOwner)return;
+ const root=document.getElementById('ownerLiveRoomsList');if(!root)return;
+ root.textContent='جارٍ تحميل البثوث…';
+ const {data,error}=await xoraSupabase.rpc('owner_list_live_rooms');
+ if(error){root.textContent='تعذر تحميل البثوث: '+error.message;return}
+ const rows=Array.isArray(data)?data:[];
+ root.innerHTML='';
+ if(!rows.length){root.textContent='لا توجد بثوث مسجلة.';return}
+ rows.forEach(item=>{
+  const card=document.createElement('div');card.className='owner-card';
+  const title=document.createElement('b');title.textContent=(item.title||'بث مباشر')+' · '+(item.host_name||'عضو');
+  const meta=document.createElement('div');meta.className='owner-status';meta.textContent=(item.status==='live'?'مباشر الآن':'منتهٍ')+' · '+new Date(item.created_at).toLocaleString('ar');
+  card.append(title,meta);
+  if(item.status==='live'){
+   const btn=document.createElement('button');btn.className='xora-action owner-danger';btn.textContent='إنهاء هذا البث';
+   btn.onclick=async()=>{if(!confirm('هل تريد إنهاء البث لهذا العضو؟'))return;btn.disabled=true;const r=await xoraSupabase.rpc('owner_end_live_stream',{p_stream_id:item.id});btn.disabled=false;if(r.error){toast('تعذر إنهاء البث: '+r.error.message);return}toast('تم إنهاء البث');await ownerLoadLiveRooms();await ownerLoadStats()};
+   card.append(btn);
+  }
+  root.append(card);
+ });
+}
+async function ownerLoadVoiceRooms(){
+ if(!xoraIsAppOwner)return;
+ const root=document.getElementById('ownerVoiceRoomsList');if(!root)return;
+ root.textContent='جارٍ تحميل الغرف…';
+ const {data,error}=await xoraSupabase.rpc('owner_list_voice_rooms');
+ if(error){root.textContent='تعذر تحميل الغرف: '+error.message;return}
+ const rows=Array.isArray(data)?data:[];
+ root.innerHTML='';
+ if(!rows.length){root.textContent='لا توجد غرف صوتية مسجلة.';return}
+ rows.forEach(item=>{
+  const card=document.createElement('div');card.className='owner-card';
+  const title=document.createElement('b');title.textContent=(item.title||'غرفة صوتية')+' · '+(item.host_name||'عضو');
+  const meta=document.createElement('div');meta.className='owner-status';meta.textContent=(item.status==='live'?'نشطة':'منتهية')+' · '+(item.is_locked?'مقفلة':'مفتوحة')+' · '+new Date(item.created_at).toLocaleString('ar');
+  card.append(title,meta);
+  if(item.status==='live'){
+   const btn=document.createElement('button');btn.className='xora-action owner-danger';btn.textContent='إغلاق الغرفة';
+   btn.onclick=async()=>{if(!confirm('هل تريد إغلاق هذه الغرفة وإخلاء المقاعد؟'))return;btn.disabled=true;const r=await xoraSupabase.rpc('owner_close_voice_room',{p_room_id:item.id});btn.disabled=false;if(r.error){toast('تعذر إغلاق الغرفة: '+r.error.message);return}toast('تم إغلاق الغرفة');await ownerLoadVoiceRooms()};
+   card.append(btn);
+  }
+  root.append(card);
+ });
+}
 const XORA_OWNER_PERMISSION_LABELS={view_reports:'عرض بلاغات الدردشة العامة',review_reports:'مراجعة وإغلاق بلاغات الدردشة العامة',moderate_chat:'كتم أو حظر أعضاء الدردشة العامة',delete_chat_messages:'حذف رسائل الدردشة العامة',view_dm_reports:'عرض بلاغات الرسائل الخاصة',review_dm_reports:'مراجعة بلاغات الرسائل الخاصة',moderate_dm:'كتم أو حظر الرسائل الخاصة',delete_dm_messages:'حذف رسائل خاصة مخالفة'};
 async function ownerLoadPermissions(){
  if(!xoraIsAppOwner)return;
