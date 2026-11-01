@@ -72,7 +72,7 @@ input:focus{border-color:#ff42aa;box-shadow:0 0 0 3px #ff2b9d20} input::placehol
 <script>
 const XORA_SUPABASE_URL='https://mcnvtsdbfoubtphdhayc.supabase.co';
 const XORA_SUPABASE_KEY='sb_publishable_i2xRgMPVtArG5viruh-egg_3Ou1R0Vb';
-const xoraAuthClient=window.supabase.createClient(XORA_SUPABASE_URL,XORA_SUPABASE_KEY,{
+var xoraAuthClient=window.supabase.createClient(XORA_SUPABASE_URL,XORA_SUPABASE_KEY,{
   auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}
 });
 const XORA_PUBLIC_URL='https://xora-live-web.hasnimakaoui526.workers.dev/';
