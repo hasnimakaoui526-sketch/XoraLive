@@ -44,6 +44,28 @@ jobs:
           s = s.replace(old, "  }, 0);", 1)
           p.write_text(s, encoding="utf-8")
           PY
+          # Restore the missing role loader: the auth bootstrap calls this on every sign-in.
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("app/src/main/assets/home.html")
+          s = p.read_text(encoding="utf-8")
+          anchor = "let xoraMyRole='member';"
+          fn = """let xoraMyRole='member';
+          async function refreshMyAppRole(){
+            if(!xoraUser){xoraMyRole='member';return xoraMyRole;}
+            const {data,error}=await xoraSupabase.from('profiles').select('role_key').eq('id',xoraUser.id).maybeSingle();
+            if(error){console.warn('تعذر تحميل رتبة الحساب:',error.message);xoraMyRole='member';return xoraMyRole;}
+            xoraMyRole=data?.role_key||'member';
+            return xoraMyRole;
+          }
+          """
+          if s.count(anchor) != 1:
+              raise SystemExit("Expected unique xoraMyRole anchor was not found; refusing to patch.")
+          if "async function refreshMyAppRole()" not in s:
+              s = s.replace(anchor, fn, 1)
+          p.write_text(s, encoding="utf-8")
+          PY
+          grep -q 'async function refreshMyAppRole' app/src/main/assets/home.html
           grep -q 'handleXoraAuth' app/src/main/assets/index.html
           grep -q 'bootXoraAuthenticatedApp' app/src/main/assets/home.html
       - name: Set up Java 17
