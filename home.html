@@ -594,6 +594,8 @@
 <header class="top"><div class="brand">Xora <span>live</span></div><div class="actions"><button class="wallet" onclick="showWalletInfo()">XONA <span id="walletCoins">…</span></button><button class="iconbtn" aria-label="الرسائل" onclick="openInbox()">✉</button><button class="iconbtn" aria-label="الإشعارات" onclick="openNotifications()">♧</button><button id="ownerEntry" class="iconbtn owner-entry" aria-label="لوحة المالك" title="لوحة المالك" onclick="openOwnerPanel()">♛</button></div></header>
 <section class="hero"><div class="eyebrow">عالمك… على الهواء</div><h1>اكتشف عالماً مباشراً</h1><p>لحظات حية وتجارب تجمعنا في مكان واحد</p><div class="live-pill"><i class="dot"></i> <b id="liveCount">0</b> بث مباشر الآن</div></section>
 <div class="xora-feature-hub">
+<button onclick="openShortVideos()"><span>🎬</span>الفيديوهات القصيرة</button>
+
 <button onclick="openLeaderboard()"><span>🏆</span>أفضل الداعمين</button>
 <button onclick="openRewards()"><span>🎁</span>المهام والحظ</button>
 <button onclick="openStore()"><span>🛍️</span>متجر الهدايا</button>
@@ -1228,6 +1230,21 @@ xoraSupabase.auth.onAuthStateChange(async(event,session)=>{
 });
 </script>
 
+
+<section class="screen" id="shortVideosScreen">
+  <div class="shorts-head"><button class="back" onclick="closeScreen('shortVideosScreen')">← رجوع</button><strong>🎬 Xora Shorts</strong><button class="shorts-refresh" onclick="loadShortVideos()">↻ تحديث</button></div>
+  <div class="shorts-create">
+    <div class="shorts-create-title">انشر لحظتك في فيديو قصير</div>
+    <label class="shorts-pick" for="shortVideoFile"><span>＋</span><b>اختر فيديو من هاتفك</b><small>MP4 أو WebM أو MOV · حتى 100MB</small></label>
+    <input id="shortVideoFile" type="file" accept="video/mp4,video/webm,video/quicktime" hidden onchange="previewShortVideo(event)">
+    <video id="shortVideoPreview" class="shorts-preview" controls playsinline hidden></video>
+    <textarea id="shortVideoCaption" maxlength="500" placeholder="اكتب وصفاً للفيديو…"></textarea>
+    <div class="shorts-create-foot"><small id="shortVideoStatus">شارك فيديو عمودياً وقصيراً مع الجميع</small><button id="shortVideoPublish" onclick="publishShortVideo()">نشر الفيديو</button></div>
+  </div>
+  <div class="shorts-feed-title"><b>اكتشف الفيديوهات</b><small>الأحدث أولاً</small></div>
+  <div id="shortVideosFeed" class="shorts-feed"><div class="shorts-loading">جارٍ تحميل الفيديوهات…</div></div>
+</section>
+
 </body></html>
 
 <style id="xora-live-portrait-stage-final">
@@ -1359,3 +1376,111 @@ xoraSupabase.auth.onAuthStateChange(async(event,session)=>{
 #voiceRoomTextForm button{display:block!important;min-width:58px!important;min-height:42px!important}
 #voiceMeetingArea>button[onclick="leaveVoiceRoom()"]{order:3!important;display:block!important;flex:0 0 auto!important;min-height:42px!important}
 </style>
+
+
+<style id="xora-shorts-ui">
+#shortVideosScreen{padding:calc(env(safe-area-inset-top) + 12px) 12px calc(env(safe-area-inset-bottom) + 20px);background:radial-gradient(ellipse at 50% 0%,#382044 0,transparent 42%),#09070d}
+.shorts-head{display:flex;align-items:center;justify-content:space-between;gap:8px;position:sticky;top:-12px;z-index:3;background:#0c0912ed;padding:8px 0 12px}
+.shorts-head strong{font-size:17px;color:#e8c98b}
+.shorts-refresh{border:1px solid #59436a;background:#21172b;color:#fff;border-radius:11px;padding:9px 12px}
+.shorts-create{background:linear-gradient(150deg,#21172b,#120e18);border:1px solid #59436a;border-radius:18px;padding:13px;margin:8px 0 18px}
+.shorts-create-title{font-weight:900;color:#f5e8fa;margin-bottom:11px}
+.shorts-pick{display:flex;min-height:100px;flex-direction:column;align-items:center;justify-content:center;gap:5px;border:1px dashed #a879c4;border-radius:14px;background:#1b1423;color:#f5e8fa;text-align:center}
+.shorts-pick span{font-size:27px;color:#e8c98b}.shorts-pick small{font-size:10px;color:#b9a9c4}
+.shorts-preview{display:block;width:100%;max-height:340px;aspect-ratio:9/16;object-fit:contain;background:#050407;border-radius:14px;margin-top:10px}
+#shortVideoCaption{display:block;width:100%;min-height:76px;resize:vertical;margin-top:10px;border:1px solid #49364f;border-radius:12px;background:#100d16;color:#fff;padding:11px;font:inherit;font-size:13px}
+.shorts-create-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px}
+.shorts-create-foot small{color:#b9a9c4;font-size:10px}
+#shortVideoPublish{border:0;border-radius:12px;padding:11px 17px;background:linear-gradient(120deg,#b98a4b,#8b5ab3);color:#160e1c;font-weight:900}
+#shortVideoPublish:disabled{opacity:.55}
+.shorts-feed-title{display:flex;justify-content:space-between;align-items:center;margin:14px 2px;color:#fff}
+.shorts-feed-title small{font-size:10px;color:#b9a9c4}
+.shorts-feed{display:flex;flex-direction:column;gap:15px}
+.shorts-card{overflow:hidden;background:#17121e;border:1px solid #49364f;border-radius:17px}
+.shorts-video-wrap{position:relative;background:#050407;display:flex;justify-content:center}
+.shorts-card video{display:block;width:100%;max-height:65dvh;aspect-ratio:9/16;object-fit:contain;background:#050407}
+.shorts-meta{padding:11px 13px}
+.shorts-author{display:flex;align-items:center;gap:8px;color:#e8c98b;font-size:12px;font-weight:900}
+.shorts-author img{width:32px;height:32px;object-fit:cover;border-radius:50%;border:1px solid #a879c4}
+.shorts-caption{font-size:13px;line-height:1.7;color:#eee;margin-top:8px;white-space:pre-wrap;overflow-wrap:anywhere}
+.shorts-date{font-size:10px;color:#96899e;margin-top:7px}
+.shorts-delete{float:left;border:1px solid #71384c;background:#351723;color:#ffb3c4;border-radius:9px;padding:6px 9px;font-size:10px}
+.shorts-loading,.shorts-empty{padding:30px 12px;text-align:center;color:#b9a9c4;background:#17121e;border-radius:14px;font-size:12px}
+@media(min-width:600px){#shortVideosScreen{max-width:520px;margin:auto}.shorts-card{max-width:430px;margin:auto;width:100%}}
+</style>
+
+
+<script id="xora-shorts-functionality">
+let xoraShortPreviewUrl=null;
+function openShortVideos(){
+  if(!xoraUser){openAuth();return}
+  showScreen('shortVideosScreen');
+  loadShortVideos();
+}
+function previewShortVideo(event){
+  const file=event.target.files?.[0],status=document.getElementById('shortVideoStatus'),preview=document.getElementById('shortVideoPreview');
+  if(xoraShortPreviewUrl){URL.revokeObjectURL(xoraShortPreviewUrl);xoraShortPreviewUrl=null}
+  if(!file){preview.hidden=true;preview.removeAttribute('src');return}
+  if(!['video/mp4','video/webm','video/quicktime'].includes(file.type)){status.textContent='صيغة الفيديو غير مدعومة';event.target.value='';return}
+  if(file.size>104857600){status.textContent='حجم الفيديو يتجاوز 100MB';event.target.value='';return}
+  xoraShortPreviewUrl=URL.createObjectURL(file);preview.src=xoraShortPreviewUrl;preview.hidden=false;status.textContent='الفيديو جاهز للنشر · '+(file.size/1048576).toFixed(1)+'MB';
+}
+async function publishShortVideo(){
+  if(!xoraUser){openAuth();return}
+  const picker=document.getElementById('shortVideoFile'),file=picker.files?.[0],caption=document.getElementById('shortVideoCaption').value.trim(),button=document.getElementById('shortVideoPublish'),status=document.getElementById('shortVideoStatus');
+  if(!file){status.textContent='اختر فيديو أولاً';return}
+  if(file.size>104857600){status.textContent='الحد الأقصى 100MB';return}
+  if(!['video/mp4','video/webm','video/quicktime'].includes(file.type)){status.textContent='اختر MP4 أو WebM أو MOV';return}
+  button.disabled=true;status.textContent='جارٍ رفع الفيديو… لا تغلق الصفحة';
+  try{
+    const ext=({'video/mp4':'mp4','video/webm':'webm','video/quicktime':'mov'})[file.type];
+    const path=xoraUser.id+'/'+crypto.randomUUID()+'.'+ext;
+    const uploaded=await xoraSupabase.storage.from('xora-short-videos').upload(path,file,{contentType:file.type,cacheControl:'3600',upsert:false});
+    if(uploaded.error)throw uploaded.error;
+    const publicUrl=xoraSupabase.storage.from('xora-short-videos').getPublicUrl(uploaded.data.path).data.publicUrl;
+    const saved=await xoraSupabase.from('short_videos').insert({user_id:xoraUser.id,video_url:publicUrl,caption}).select('id').single();
+    if(saved.error){await xoraSupabase.storage.from('xora-short-videos').remove([path]);throw saved.error}
+    picker.value='';document.getElementById('shortVideoCaption').value='';
+    const preview=document.getElementById('shortVideoPreview');preview.pause();preview.removeAttribute('src');preview.hidden=true;
+    if(xoraShortPreviewUrl){URL.revokeObjectURL(xoraShortPreviewUrl);xoraShortPreviewUrl=null}
+    status.textContent='تم نشر الفيديو بنجاح 🎉';await loadShortVideos();
+  }catch(error){status.textContent='تعذر النشر: '+(error.message||'خطأ غير معروف')}
+  finally{button.disabled=false}
+}
+async function loadShortVideos(){
+  const root=document.getElementById('shortVideosFeed');if(!root)return;
+  root.innerHTML='<div class="shorts-loading">جارٍ تحميل الفيديوهات…</div>';
+  const {data:videos,error}=await xoraSupabase.from('short_videos').select('id,user_id,video_url,caption,created_at').order('created_at',{ascending:false}).limit(40);
+  if(error){root.textContent='تعذر تحميل الفيديوهات: '+error.message;return}
+  if(!videos?.length){root.innerHTML='<div class="shorts-empty">لا توجد فيديوهات بعد. كن أول من ينشر 🎬</div>';return}
+  const ids=[...new Set(videos.map(v=>v.user_id))];
+  const {data:profiles}=await xoraSupabase.from('profiles').select('id,username,avatar_url').in('id',ids);
+  const byId=Object.fromEntries((profiles||[]).map(p=>[p.id,p]));
+  root.innerHTML='';
+  for(const v of videos){
+    const p=byId[v.user_id]||{},card=document.createElement('article');card.className='shorts-card';
+    const wrap=document.createElement('div');wrap.className='shorts-video-wrap';
+    const video=document.createElement('video');video.src=v.video_url;video.controls=true;video.playsInline=true;video.preload='metadata';video.loop=true;video.setAttribute('controlsList','nodownload');
+    wrap.appendChild(video);
+    const meta=document.createElement('div');meta.className='shorts-meta';
+    const author=document.createElement('div');author.className='shorts-author';
+    const avatar=document.createElement('img');avatar.src=p.avatar_url||'https://placehold.co/80x80/302139/e8c98b?text=X';avatar.alt='';
+    const name=document.createElement('span');name.textContent=p.username||'مستخدم Xora';
+    author.append(avatar,name);
+    if(xoraUser&&v.user_id===xoraUser.id){const del=document.createElement('button');del.className='shorts-delete';del.textContent='حذف الفيديو';del.onclick=()=>deleteShortVideo(v.id,v.video_url);author.appendChild(del)}
+    const caption=document.createElement('div');caption.className='shorts-caption';caption.textContent=v.caption||'';
+    const date=document.createElement('div');date.className='shorts-date';date.textContent=new Date(v.created_at).toLocaleString('ar');
+    meta.append(author,caption,date);card.append(wrap,meta);root.appendChild(card);
+  }
+}
+async function deleteShortVideo(id,url){
+  if(!xoraUser||!confirm('هل تريد حذف هذا الفيديو نهائياً؟'))return;
+  const {error}=await xoraSupabase.from('short_videos').delete().eq('id',id).eq('user_id',xoraUser.id);
+  if(error){alert('تعذر حذف الفيديو: '+error.message);return}
+  const marker='/storage/v1/object/public/xora-short-videos/';
+  const at=url.indexOf(marker);
+  if(at>=0){const path=decodeURIComponent(url.slice(at+marker.length));await xoraSupabase.storage.from('xora-short-videos').remove([path])}
+  await loadShortVideos();
+}
+</script>
+
