@@ -8,6 +8,8 @@
     <application
         android:allowBackup="false"
         android:label="Xora Live"
+        android:icon="@drawable/xora_launcher"
+        android:roundIcon="@drawable/xora_launcher"
         android:usesCleartextTraffic="false"
         android:theme="@style/AppTheme">
         <activity
