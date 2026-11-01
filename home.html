@@ -220,7 +220,7 @@
 .owner-entry{display:none!important}.owner-entry.ready{display:inline-flex!important}
 .owner-screen h2{margin:18px 0 10px}.owner-hero{background:linear-gradient(135deg,#382044,#1a1422 65%,#3b2a22);border:1px solid #73513e;border-radius:20px;padding:16px;margin:14px 0}
 .owner-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.owner-stat{background:#1b1522;border:1px solid #49364f;border-radius:14px;padding:12px}.owner-stat b{display:block;color:#e8c98b;font-size:22px}.owner-stat span{font-size:11px;color:#b9a9c4}
-.owner-card{background:#191421;border:1px solid #49364f;border-radius:16px;padding:13px;margin:10px 0}.owner-card-head{display:flex;align-items:center;gap:10px}.owner-card-head img{width:42px;height:42px;border-radius:50%;object-fit:cover}.owner-card-head strong{display:block}.owner-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.owner-fields input,.owner-fields select,.owner-panel-input{width:100%;min-width:0;background:#241b2d;color:#fff;border:1px solid #594267;border-radius:10px;padding:10px;font:inherit;font-size:12px}.owner-field{min-width:0}.owner-field label{display:block;color:#c8b9ce;font-size:10px;margin:0 0 5px}.owner-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}.owner-actions button{flex:1;min-width:110px}.owner-section-title{font-size:15px;font-weight:900;margin:22px 0 8px;color:#f3dfb4}.owner-rank-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.owner-rank{background:#1d1726;border:1px solid #403148;border-radius:12px;padding:10px;font-size:11px}.owner-rank b{display:block;color:#e8c98b;font-size:12px;margin-bottom:4px}.owner-status{font-size:11px;color:#b9a9c4;margin-top:7px;white-space:pre-wrap}.owner-inline{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.owner-inline input{flex:1;min-width:100px}.owner-danger{background:#512235!important}.owner-check{display:flex;align-items:center;gap:7px;color:#d8c9df;font-size:12px}
+.owner-card{background:#191421;border:1px solid #49364f;border-radius:16px;padding:13px;margin:10px 0}.owner-card-head{display:flex;align-items:center;gap:10px}.owner-card-head img{width:42px;height:42px;border-radius:50%;object-fit:cover}.owner-card-head strong{display:block}.owner-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.owner-fields input,.owner-fields select,.owner-panel-input{width:100%;min-width:0;background:#241b2d;color:#fff;border:1px solid #594267;border-radius:10px;padding:10px;font:inherit;font-size:12px}.owner-field{min-width:0}.owner-field label{display:block;color:#c8b9ce;font-size:10px;margin:0 0 5px}.owner-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}.owner-actions button{flex:1;min-width:110px}.owner-section-title{font-size:15px;font-weight:900;margin:22px 0 8px;color:#f3dfb4}.owner-rank-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.owner-rank{background:#1d1726;border:1px solid #403148;border-radius:12px;padding:10px;font-size:11px}.owner-rank b{display:block;color:#e8c98b;font-size:12px;margin-bottom:4px}.owner-status{font-size:11px;color:#b9a9c4;margin-top:7px;white-space:pre-wrap}.owner-inline{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.owner-inline input{flex:1;min-width:100px}.owner-danger{background:#512235!important}.owner-permissions-list{display:grid;grid-template-columns:1fr;gap:10px;margin-top:13px}.owner-permission-row{padding:10px;border:1px solid #403148;border-radius:11px;background:#1d1726}.owner-permission-row input{accent-color:#b77ae0;width:18px;height:18px}.owner-check{display:flex;align-items:center;gap:7px;color:#d8c9df;font-size:12px}
 </style><style>
 .msg-report{border:0;background:transparent;color:#c7a5d8;font-size:10px;padding:3px 7px;align-self:flex-start;cursor:pointer}.mod-entry{display:none!important}.mod-entry.ready{display:inline-flex!important}
 .moderation-screen .owner-card{margin:10px 0}.mod-report-meta{font-size:11px;color:#b9a9c4;white-space:pre-wrap;margin-top:6px}.mod-report-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}.mod-report-actions button{flex:1;min-width:105px}.mod-toolbar{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}.mod-toolbar input,.mod-toolbar select{min-width:0;background:#241b2d;color:#fff;border:1px solid #594267;border-radius:10px;padding:10px}
@@ -641,6 +641,13 @@
 <div class="owner-section-title">إدارة الأعضاء والصلاحيات</div>
 <div class="owner-inline"><input class="owner-panel-input" id="ownerUserSearch" placeholder="ابحث باسم المستخدم…" oninput="ownerSearchUsers()"><button class="xora-action" onclick="ownerLoadUsers()">تحديث</button></div>
 <div id="ownerUsersList"><p class="owner-status">جارٍ تحميل الأعضاء…</p></div>
+<div class="owner-section-title">التحكم التفصيلي في صلاحيات الإدارة</div>
+<div class="owner-card">
+ <p class="owner-status">هذه الصلاحيات تُطبّق من قاعدة البيانات أيضاً، ولا تعتمد على إخفاء الأزرار فقط. المالك يحتفظ دائماً بكامل الصلاحيات.</p>
+ <div class="owner-inline"><label for="ownerPermissionRole">اختر الرتبة</label><select id="ownerPermissionRole" class="owner-panel-input" onchange="ownerLoadPermissions()"><option value="manager">المدير</option><option value="moderator">المشرف</option></select><button class="xora-action" onclick="ownerLoadPermissions()">تحديث الصلاحيات</button></div>
+ <div id="ownerPermissionsList" class="owner-permissions-list"><p class="owner-status">جارٍ تحميل الصلاحيات…</p></div>
+ <div id="ownerPermissionsStatus" class="owner-status"></div>
+</div>
 <div class="owner-section-title">صفة ملكية التطبيق</div>
 <div class="owner-card"><b>👑 مالك التطبيق</b><div class="owner-status">صفة ملكية مستقلة عن الرتب الإدارية ومستويات XP، ولا تُمنح من قائمة رتب الأعضاء.</div></div>
 <div class="owner-section-title">سُلّم الرتب والمزايا</div>
@@ -1067,7 +1074,7 @@ function ownerDmRenderMessages(scrollBottom=true){
  if(scrollBottom)root.scrollTop=root.scrollHeight;document.getElementById('ownerDmThreadStatus').textContent='آخر مزامنة: '+new Date().toLocaleTimeString('ar')+' · تحديث تلقائي كل ثانيتين تقريباً';
 }
 function ownerDmCloseThread(){ownerDmSelected=null;ownerDmLastMessageAt=null;if(ownerDmPollTimer){clearInterval(ownerDmPollTimer);ownerDmPollTimer=null}document.getElementById('ownerDmThreadPanel').style.display='none';document.getElementById('ownerDmConversationList').style.display='block';ownerDmLoadConversations()}
-async function ownerLoadAll(){if(!xoraIsAppOwner)return;ownerSetStatus('ownerPanelStatus','جارٍ تحديث بيانات الإدارة…');await Promise.all([ownerLoadStats(),ownerLoadUsers(),ownerLoadPurchases(),ownerLoadPaymentMethods(),ownerDmLoadConversations()]);ownerSetStatus('ownerPanelStatus','تم تحديث بيانات لوحة المالك.')}
+async function ownerLoadAll(){if(!xoraIsAppOwner)return;ownerSetStatus('ownerPanelStatus','جارٍ تحديث بيانات الإدارة…');await Promise.all([ownerLoadStats(),ownerLoadUsers(),ownerLoadPurchases(),ownerLoadPaymentMethods(),ownerDmLoadConversations(),ownerLoadPermissions()]);ownerSetStatus('ownerPanelStatus','تم تحديث بيانات لوحة المالك.')}
 async function ownerLoadStats(){const [u,l,p,w]=await Promise.all([xoraSupabase.from('profiles').select('id',{count:'exact',head:true}),xoraSupabase.from('streams').select('id',{count:'exact',head:true}).eq('status','live'),xoraSupabase.from('coin_purchase_requests').select('id',{count:'exact',head:true}).eq('status','pending'),xoraSupabase.from('wallets').select('coins')]);document.getElementById('ownerUsersCount').textContent=u.count??'—';document.getElementById('ownerLiveCount').textContent=l.count??'—';document.getElementById('ownerPendingCount').textContent=p.count??'—';document.getElementById('ownerCoinsCount').textContent=(w.data||[]).reduce((n,x)=>n+Number(x.coins||0),0).toLocaleString('ar')}
 async function ownerLoadUsers(){if(!xoraIsAppOwner)return;const q=document.getElementById('ownerUserSearch').value.trim();const root=document.getElementById('ownerUsersList');root.textContent='جارٍ تحميل الأعضاء…';const {data,error}=await xoraSupabase.rpc('owner_list_users',{p_search:q||null,p_limit:100});if(error){root.textContent='تعذر تحميل الأعضاء: '+error.message;return}ownerUsersCache=Array.isArray(data)?data:[];ownerRenderUsers(ownerUsersCache)}
 function ownerSearchUsers(){const q=document.getElementById('ownerUserSearch').value.trim().toLowerCase();ownerRenderUsers(ownerUsersCache.filter(u=>(u.username||'').toLowerCase().includes(q)))}
@@ -1105,6 +1112,26 @@ xoraSupabase.auth.onAuthStateChange(async(event,session)=>{
   xoraUser=session.user;
   if(event==='SIGNED_IN'||event==='TOKEN_REFRESHED'){await refreshXoraProfile();await checkOwnerAccess();await refreshMyAppRole();await xoraSupabase.rpc('update_my_presence');}
 });
+
+const XORA_OWNER_PERMISSION_LABELS={view_reports:'عرض بلاغات الدردشة العامة',review_reports:'مراجعة وإغلاق بلاغات الدردشة العامة',moderate_chat:'كتم أو حظر أعضاء الدردشة العامة',delete_chat_messages:'حذف رسائل الدردشة العامة',view_dm_reports:'عرض بلاغات الرسائل الخاصة',review_dm_reports:'مراجعة بلاغات الرسائل الخاصة',moderate_dm:'كتم أو حظر الرسائل الخاصة',delete_dm_messages:'حذف رسائل خاصة مخالفة'};
+async function ownerLoadPermissions(){
+ if(!xoraIsAppOwner)return;
+ const root=document.getElementById('ownerPermissionsList');if(!root)return;
+ root.textContent='جارٍ تحميل الصلاحيات…';
+ const {data,error}=await xoraSupabase.rpc('owner_list_role_permissions');
+ if(error){root.textContent='تعذر تحميل الصلاحيات: '+error.message;ownerSetStatus('ownerPermissionsStatus',error.message);return}
+ const role=document.getElementById('ownerPermissionRole')?.value||'manager';
+ const rows=Array.isArray(data)?data.filter(x=>x.role_key===role):[];
+ root.innerHTML='';
+ Object.entries(XORA_OWNER_PERMISSION_LABELS).forEach(([key,label])=>{
+  const row=rows.find(x=>x.permission_key===key);
+  const wrap=document.createElement('label');wrap.className='owner-check owner-permission-row';
+  const input=document.createElement('input');input.type='checkbox';input.checked=row?!!row.enabled:true;
+  input.onchange=async()=>{input.disabled=true;const result=await xoraSupabase.rpc('owner_set_role_permission',{p_role_key:role,p_permission_key:key,p_enabled:input.checked});input.disabled=false;if(result.error){input.checked=!input.checked;ownerSetStatus('ownerPermissionsStatus','لم يتم الحفظ: '+result.error.message);return}ownerSetStatus('ownerPermissionsStatus','تم حفظ صلاحية: '+label+' · '+(input.checked?'مفعّلة':'معطّلة'));};
+  const text=document.createElement('span');text.textContent=label;wrap.append(input,text);root.append(wrap);
+ });
+ ownerSetStatus('ownerPermissionsStatus','تغيير أي خيار يُحفظ فوراً ويُطبّق على طلبات قاعدة البيانات.');
+}
 </script>
 </body></html>
 
