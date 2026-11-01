@@ -608,6 +608,34 @@
 #ownerScreen .owner-v2-panel .secondary{border-radius:10px}
 @media(max-width:390px){#ownerScreen>.owner-command-shell{padding-left:12px;padding-right:12px}#ownerScreen .owner-v2-stats{gap:6px}#ownerScreen .owner-v2-stats .owner-stat{padding:9px 6px}#ownerScreen .owner-v2-stats .owner-stat b{font-size:16px}#ownerScreen .owner-v2-tile{min-height:82px;padding:10px 8px;gap:8px}#ownerScreen .owner-v2-tile .owner-tile-icon{flex-basis:40px;width:40px;height:40px}}
 </style>
+
+<style id="owner-clean-redesign">
+#ownerScreen{position:fixed!important;inset:0!important;z-index:80!important;overflow-y:auto!important;background:#090a10!important;color:#f6f3fa!important;padding:env(safe-area-inset-top) 0 20px!important}
+#ownerScreen .owner-clean-shell{width:min(100%,680px);margin:0 auto;padding:8px 13px 22px}
+#ownerScreen .owner-clean-shell>.back{margin:0 0 8px!important}
+#ownerScreen .owner-clean-head{height:48px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #292832;margin-bottom:12px;padding:0 3px}
+#ownerScreen .owner-clean-head b{font-size:17px;font-weight:900;color:#fff}
+#ownerScreen .owner-clean-head span{font-size:9px;color:#c6a45e;letter-spacing:1px}
+#ownerScreen .owner-clean-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+#ownerScreen .owner-clean-tile{min-width:0;min-height:92px;padding:10px 5px 8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;border:1px solid #302d39;border-radius:14px;background:#14151d;color:#f8f5fa}
+#ownerScreen .owner-clean-tile:active{background:#27212a;border-color:#a1844c}
+#ownerScreen .owner-clean-icon{width:37px;height:37px;border-radius:12px;display:grid;place-items:center;background:#292319;border:1px solid #64502f}
+#ownerScreen .owner-clean-icon svg{width:20px;height:20px;fill:none;stroke:#dfbf78;stroke-width:1.65;stroke-linecap:round;stroke-linejoin:round}
+#ownerScreen .owner-clean-tile b{font-size:10px;line-height:1.25;font-weight:800;text-align:center}
+#ownerScreen .owner-clean-tile small{font-size:8px;color:#888493}
+#ownerScreen .owner-clean-panels[hidden],#ownerScreen .owner-clean-panel[hidden],#ownerScreen .owner-clean-home[hidden]{display:none!important}
+#ownerScreen .owner-clean-panel{padding-bottom:20px}
+#ownerScreen .owner-clean-toolbar{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;margin:0 -13px 13px;padding:9px 13px;background:#101118f5;border-bottom:1px solid #302d39;backdrop-filter:blur(12px)}
+#ownerScreen .owner-clean-toolbar b{font-size:13px;color:#e1c27b}
+#ownerScreen .owner-clean-back{background:#24232c;border:1px solid #393642;border-radius:9px;color:#eee;padding:7px 11px;font-size:10px}
+#ownerScreen .owner-clean-panel>.owner-section-title{font-size:13px;color:#d9b96f;border-bottom:1px solid #302d39;padding:0 2px 9px;margin:0 0 12px}
+#ownerScreen .owner-clean-panel .owner-card{background:#14151d;border:1px solid #302d39;border-radius:13px}
+#ownerScreen .owner-clean-panel input,#ownerScreen .owner-clean-panel select,#ownerScreen .owner-clean-panel textarea{background:#101118;border:1px solid #393642;border-radius:9px;color:#fff}
+#ownerScreen .owner-clean-refresh{margin:12px 0 0}
+#ownerScreen .owner-clean-refresh button{width:100%;border-radius:10px;background:#292319;border:1px solid #64502f;color:#e1c27b;padding:9px}
+#ownerScreen #ownerPanelStatus{font-size:9px;color:#888493;text-align:center;margin:7px}
+@media(max-width:360px){#ownerScreen .owner-clean-grid{gap:7px}#ownerScreen .owner-clean-tile{min-height:86px}}
+</style>
 </head>
 <body><main class="app">
 <header class="top"><div class="brand">Xora <span>live</span></div><div class="actions"><button class="wallet" onclick="showWalletInfo()">XONA <span id="walletCoins">…</span></button><button class="iconbtn" aria-label="الرسائل" onclick="openInbox()">✉</button><button class="iconbtn" aria-label="الإشعارات" onclick="openNotifications()">♧</button><button id="modEntry" class="iconbtn mod-entry" aria-label="مركز الإشراف" title="مركز الإشراف" onclick="openModerationPanel()">🛡</button><button id="ownerEntry" class="iconbtn owner-entry" aria-label="لوحة المالك" title="لوحة المالك" onclick="openOwnerPanel()">♛</button></div></header>
@@ -1145,70 +1173,72 @@ function ownerBuildDashboard(){
  const root=document.getElementById('ownerScreen');if(!root||ownerDashboardBuilt)return;
  const titles=Array.from(root.querySelectorAll(':scope > .owner-section-title'));if(!titles.length)return;
  const back=root.querySelector(':scope > .back');
- const hero=root.querySelector(':scope > .owner-hero');
- const stats=root.querySelector(':scope > .owner-stats');
- const refreshActions=Array.from(root.querySelectorAll(':scope > .owner-actions')).find(el=>el.querySelector('button[onclick="ownerLoadAll()"]'));
- const refreshStatus=root.querySelector(':scope > #ownerPanelStatus');
- const shell=document.createElement('div');shell.className='owner-command-shell';
- const mast=document.createElement('div');mast.className='owner-command-mast';
- const mastCopy=document.createElement('div');mastCopy.className='owner-mast-copy';
- const kicker=document.createElement('span');kicker.className='owner-mast-kicker';kicker.textContent='XORA LIVE  /  OWNER SUITE';
- const heading=document.createElement('strong');heading.textContent='مركز قيادة التطبيق';
- const sub=document.createElement('small');sub.textContent='إدارة دقيقة لكل تفاصيل المنصة';
- mastCopy.append(kicker,heading,sub);
- const emblem=document.createElement('div');emblem.className='owner-mast-emblem';emblem.innerHTML='<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 34 5 13l11 9 8-14 8 14 11-9-3 21H8Z"/><path d="M10 39h28M14 34l2 5m18-5-2 5"/></svg>';
- mast.append(mastCopy,emblem);
- if(back){back.classList.add('owner-v2-back');shell.append(back)}
- if(hero){hero.classList.add('owner-v2-hero');shell.append(hero)}
- shell.append(mast);
- if(stats){stats.classList.add('owner-v2-stats');shell.append(stats)}
- const nav=document.createElement('section');nav.id='ownerIconDashboard';nav.className='owner-icon-dashboard owner-v2-nav';
- const navHead=document.createElement('div');navHead.className='owner-v2-section-head';navHead.innerHTML='<div><span>CONTROL MODULES</span><h3>أقسام الإدارة</h3><p>اختر وحدة التحكم للدخول إلى أدواتها</p></div><i>10 MODULES</i>';
- const grid=document.createElement('div');grid.className='owner-icon-grid';nav.append(navHead,grid);
- const panels=document.createElement('div');panels.id='ownerDashboardPanels';panels.className='owner-v2-panels';
- const iconFor=t=>{
-  if(/الرسائل الخاصة|رسائل خاصة/.test(t))return ['مراقبة الخاص','رسائل الأعضاء ومراجعتها','<path d="M5 7h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-8l-5 3v-5a2 2 0 0 1-3-2V9a2 2 0 0 1 2-2Z"/><path d="M8 12h8m-8 4h5"/>'];
-  if(/الأعضاء/.test(t))return ['الأعضاء والرتب','الحسابات والعضويات','<circle cx="9" cy="8" r="3"/><path d="M3 21v-2a6 6 0 0 1 12 0v2M17 5a3 3 0 0 1 0 6m2 4a5 5 0 0 1 3 5v1"/>'];
-  if(/البثوث/.test(t))return ['البث والغرف','متابعة البث المباشر والغرف','<rect x="3" y="6" width="14" height="13" rx="2"/><path d="m17 10 5-3v11l-5-3M8 3l3 3"/>'];
-  if(/الصلاحيات/.test(t))return ['صلاحيات الإدارة','تحديد صلاحيات المدير والمشرف','<path d="M12 3 20 6v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6l8-3Z"/><path d="m9 12 2 2 4-4"/>'];
-  if(/ملكية/.test(t))return ['ملكية التطبيق','هوية المالك وحماية المنصة','<path d="m12 3 2.7 5.5 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9L12 3Z"/>'];
-  if(/الرتب/.test(t))return ['الرتب والمزايا','سُلّم العضويات والمكافآت','<path d="m12 3 2.5 5 5.5.8-4 3.9.9 5.5-4.9-2.6-4.9 2.6.9-5.5-4-3.9 5.5-.8L12 3Z"/><path d="M7 21h10"/>'];
-  if(/إعلان/.test(t))return ['الإعلانات','إرسال أخبار وتنبيهات عامة','<path d="m3 11 18-6v14L3 13v-2Z"/><path d="m8 14 2 7h4l-2-6M21 10l2-2m-2 8 2 2"/>'];
-  if(/شراء العملات/.test(t))return ['طلبات الشراء','مراجعة طلبات شحن الرصيد','<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18m-13 5h4"/>'];
-  if(/باقات العملات/.test(t))return ['باقات العملات','تسعير وإدارة الباقات','<circle cx="12" cy="12" r="9"/><path d="M15 8.5c-.7-.7-1.7-1-3-1-1.7 0-3 .8-3 2s1.3 2 3 2 3 .8 3 2-1.3 2-3 2c-1.3 0-2.3-.3-3-1m3-9v11"/>'];
-  if(/طرق الدفع/.test(t))return ['طرق الدفع','إعداد وسائل الدفع المعتمدة','<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18m-14 5h4"/>'];
-  return [t,'إعدادات وأدوات القسم','<circle cx="12" cy="12" r="8"/><path d="M12 8v8m-4-4h8"/>'];
+ const nav=document.createElement('section');nav.id='ownerIconDashboard';nav.className='owner-clean-home';
+ nav.innerHTML='<div class="owner-clean-head"><b>لوحة المالك</b><span>تحكم XORA LIVE</span></div><div class="owner-clean-grid" id="ownerIconGrid"></div>';
+ const panels=document.createElement('div');panels.id='ownerDashboardPanels';panels.className='owner-clean-panels';
+ const grid=nav.querySelector('#ownerIconGrid');
+ const modules=[
+  [/البلاغات المفتوحة/,'البلاغات','flag'],
+  [/بلاغات الرسائل الخاصة/,'بلاغات الخاص','message-circle-warning'],
+  [/الرسائل الخاصة|رسائل خاصة/,'مراقبة الخاص','messages-square'],
+  [/إدارة الأعضاء/,'الأعضاء','users'],
+  [/إدارة البثوث/,'البث والغرف','radio-tower'],
+  [/التحكم التفصيلي/,'الصلاحيات','shield-check'],
+  [/صفة ملكية/,'الملكية','crown'],
+  [/سُلّم الرتب/,'الرتب','medal'],
+  [/إرسال إعلان/,'الإعلانات','megaphone'],
+  [/طلبات شراء/,'طلبات الشراء','wallet'],
+  [/إدارة باقات/,'الباقات','coins'],
+  [/إدارة طرق الدفع/,'الدفع','credit-card']
+ ];
+ const paths={
+ flag:'<path d="M5 21V4m0 0c6-4 9 4 15 0v12c-6 4-9-4-15 0"/>',
+ 'message-circle-warning':'<path d="M21 11.5a8.5 8.5 0 0 1-12.2 7.6L3 21l1.9-5.8A8.5 8.5 0 1 1 21 11.5Z"/><path d="M12 7v5m0 3h.01"/>',
+ 'messages-square':'<path d="M21 11.5a8.5 8.5 0 0 1-12.2 7.6L3 21l1.9-5.8A8.5 8.5 0 1 1 21 11.5Z"/><path d="M8 10h8m-8 4h5"/>',
+ users:'<path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="10" cy="7" r="4"/><path d="M20 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/>',
+ 'radio-tower':'<path d="M12 12v9m-4 0h8"/><path d="M8.5 8.5a5 5 0 0 0 0 7m7-7a5 5 0 0 1 0 7M5 5a10 10 0 0 0 0 14m14-14a10 10 0 0 1 0 14"/>',
+ 'shield-check':'<path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Z"/><path d="m9 12 2 2 4-4"/>',
+ crown:'<path d="m2 8 5 4 5-8 5 8 5-4-2 12H4L2 8Z"/>',
+ medal:'<circle cx="12" cy="8" r="6"/><path d="m8.2 13-1 9 4.8-3 4.8 3-1-9"/>',
+ megaphone:'<path d="m3 11 18-6v14L3 13v-2Z"/><path d="m8 14 2 7h4l-2-6"/>',
+ wallet:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18m-6 5h2"/>',
+ coins:'<circle cx="9" cy="9" r="6"/><path d="M15 13a6 6 0 1 1-6 6m0-13v6m-3-3h6"/>',
+ 'credit-card':'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18m-14 5h4"/>'
  };
  titles.forEach((title,index)=>{
-  const pair=iconFor(title.textContent.trim());
-  const panel=document.createElement('section');panel.className='owner-dashboard-panel owner-v2-panel';panel.id='ownerPanelSection'+index;panel.hidden=true;
-  const bar=document.createElement('div');bar.className='owner-panel-toolbar owner-v2-toolbar';
-  const backBtn=document.createElement('button');backBtn.className='owner-v2-back-btn';backBtn.innerHTML='← <span>العودة إلى مركز التحكم</span>';backBtn.onclick=()=>ownerShowDashboardHome();
-  const label=document.createElement('b');label.textContent=pair[0];bar.append(backBtn,label);panel.append(bar,title);
+  const heading=title.textContent.trim();
+  const found=modules.find(m=>m[0].test(heading));
+  const label=found?found[1]:heading;
+  const icon=found?found[2]:'settings';
+  const panel=document.createElement('section');panel.className='owner-dashboard-panel owner-clean-panel';panel.id='ownerPanelSection'+index;panel.hidden=true;
+  const toolbar=document.createElement('div');toolbar.className='owner-clean-toolbar';
+  const backBtn=document.createElement('button');backBtn.type='button';backBtn.className='owner-clean-back';backBtn.textContent='‹ رجوع';
+  backBtn.onclick=()=>ownerShowDashboardHome();
+  const name=document.createElement('b');name.textContent=label;toolbar.append(backBtn,name);
+  panel.append(toolbar,title);
   let node=title.nextSibling;
   while(node&&!(node.nodeType===1&&node.classList.contains('owner-section-title'))){const next=node.nextSibling;panel.append(node);node=next}
   panels.append(panel);
-  const tile=document.createElement('button');tile.type='button';tile.className='owner-icon-tile owner-v2-tile';
-  tile.innerHTML='<span class="owner-tile-icon"><svg viewBox="0 0 24 24" aria-hidden="true">'+pair[2]+'</svg></span><span class="owner-v2-tile-copy"><strong></strong><small></small></span><span class="owner-v2-tile-arrow">↗</span>';
-  tile.querySelector('strong').textContent=pair[0];tile.querySelector('small').textContent=pair[1];tile.onclick=()=>ownerShowDashboardPanel(index);grid.append(tile);
+  const tile=document.createElement('button');tile.type='button';tile.className='owner-clean-tile';
+  tile.innerHTML='<span class="owner-clean-icon"><svg viewBox="0 0 24 24" aria-hidden="true">'+(paths[icon]||'<circle cx="12" cy="12" r="8"/>')+'</svg></span><b></b><small>فتح</small>';
+  tile.querySelector('b').textContent=label;tile.onclick=()=>ownerShowDashboardPanel(index);grid.append(tile);
  });
- if(refreshActions){refreshActions.classList.add('owner-v2-refresh');nav.append(refreshActions)}
- if(refreshStatus){refreshStatus.classList.add('owner-v2-status');nav.append(refreshStatus)}
+ const actions=Array.from(root.querySelectorAll(':scope > .owner-actions')).find(el=>el.querySelector('button[onclick="ownerLoadAll()"]'));
+ const status=root.querySelector(':scope > #ownerPanelStatus');
+ const shell=document.createElement('div');shell.className='owner-clean-shell';
+ if(back)shell.append(back);
  shell.append(nav,panels);
- root.replaceChildren(shell);
- ownerDashboardBuilt=true;
+ if(actions){actions.classList.add('owner-clean-refresh');shell.append(actions)}
+ if(status)shell.append(status);
+ root.replaceChildren(shell);ownerDashboardBuilt=true;
 }
 function ownerShowDashboardHome(){
  const nav=document.getElementById('ownerIconDashboard'),panels=document.getElementById('ownerDashboardPanels');
  if(nav)nav.hidden=false;if(panels)panels.hidden=true;
- const hero=document.querySelector('#ownerScreen .owner-v2-hero');if(hero)hero.hidden=false;
- const stats=document.querySelector('#ownerScreen .owner-v2-stats');if(stats)stats.hidden=false;
 }
 function ownerShowDashboardPanel(index){
  const nav=document.getElementById('ownerIconDashboard'),panels=document.getElementById('ownerDashboardPanels');
  if(nav)nav.hidden=true;
- const hero=document.querySelector('#ownerScreen .owner-v2-hero');if(hero)hero.hidden=true;
- const stats=document.querySelector('#ownerScreen .owner-v2-stats');if(stats)stats.hidden=true;
  if(panels){panels.hidden=false;panels.querySelectorAll('.owner-dashboard-panel').forEach((p,i)=>p.hidden=i!==index);panels.scrollIntoView({behavior:'smooth',block:'start'});}
 }
 async function ownerLoadAll(){if(!xoraIsAppOwner)return;ownerSetStatus('ownerPanelStatus','جارٍ تحديث بيانات الإدارة…');await Promise.all([ownerLoadStats(),ownerLoadUsers(),ownerLoadPurchases(),ownerLoadPaymentMethods(),ownerDmLoadConversations(),ownerLoadPermissions(),ownerLoadLiveRooms(),ownerLoadVoiceRooms()]);ownerSetStatus('ownerPanelStatus','تم تحديث بيانات لوحة المالك.')}
