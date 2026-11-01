@@ -1,4 +1,5 @@
 name: Build Xora Live APK - fresh rebuild
+# Rebuild restored stable source commit 9ce58eec.
 on:
   workflow_dispatch:
   push:
