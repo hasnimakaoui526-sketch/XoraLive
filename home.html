@@ -690,6 +690,12 @@
 <div class="owner-rank"><b>👤 عضو</b>الرتبة الافتراضية للأعضاء.</div>
 <div class="owner-rank"><b>🆕 جديد</b>رتبة العضو الجديد.</div>
 </div>
+<div class="owner-card" id="ownerRolePermissionsCard">
+ <b>⚙️ صلاحيات المدير والمشرف الفعلية</b>
+ <p class="owner-status">فعّل أو عطّل كل صلاحية. يتم حفظ التغيير مباشرة في قاعدة البيانات، وتُطبّق على حسابات أصحاب الرتبة.</p>
+ <div id="ownerRolePermissions"><p class="owner-status">جارٍ تحميل الصلاحيات…</p></div>
+ <div id="ownerRolePermissionsStatus" class="owner-status"></div>
+</div>
 <div class="owner-section-title">إرسال إعلان لجميع الأعضاء</div>
 <div class="owner-card"><textarea id="ownerAnnouncement" class="owner-panel-input" rows="3" maxlength="500" placeholder="اكتب إعلاناً أو خبراً يظهر في إشعارات جميع الأعضاء…"></textarea><div class="owner-actions"><button class="xora-action" onclick="ownerBroadcast()">إرسال الإعلان للجميع</button></div><div id="ownerAnnouncementStatus" class="owner-status"></div></div>
 <div class="owner-section-title">طلبات شراء العملات</div>
@@ -1105,7 +1111,37 @@ function ownerDmRenderMessages(scrollBottom=true){
  if(scrollBottom)root.scrollTop=root.scrollHeight;document.getElementById('ownerDmThreadStatus').textContent='آخر مزامنة: '+new Date().toLocaleTimeString('ar')+' · تحديث تلقائي كل ثانيتين تقريباً';
 }
 function ownerDmCloseThread(){ownerDmSelected=null;ownerDmLastMessageAt=null;if(ownerDmPollTimer){clearInterval(ownerDmPollTimer);ownerDmPollTimer=null}document.getElementById('ownerDmThreadPanel').style.display='none';document.getElementById('ownerDmConversationList').style.display='block';ownerDmLoadConversations()}
-async function ownerLoadAll(){if(!xoraIsAppOwner)return;ownerSetStatus('ownerPanelStatus','جارٍ تحديث بيانات الإدارة…');const jobs=await Promise.allSettled([ownerLoadStats(),ownerLoadUsers(),ownerLoadPurchases(),ownerLoadPaymentMethods(),ownerDmLoadConversations()]);const failed=jobs.filter(x=>x.status==='rejected').length;ownerSetStatus('ownerPanelStatus',failed?'اكتمل التحديث مع '+failed+' أخطاء. راجع حالة كل قسم.':'تم تحديث بيانات لوحة المالك.');}
+async function ownerLoadAll(){if(!xoraIsAppOwner)return;ownerSetStatus('ownerPanelStatus','جارٍ تحديث بيانات الإدارة…');const jobs=await Promise.allSettled([ownerLoadStats(),ownerLoadUsers(),ownerLoadPurchases(),ownerLoadPaymentMethods(),ownerDmLoadConversations(),ownerLoadRolePermissions()]);const failed=jobs.filter(x=>x.status==='rejected').length;ownerSetStatus('ownerPanelStatus',failed?'اكتمل التحديث مع '+failed+' أخطاء. راجع حالة كل قسم.':'تم تحديث بيانات لوحة المالك.');}
+const ownerPermissionLabels={view_reports:'عرض البلاغات العامة',review_reports:'مراجعة البلاغات العامة',moderate_chat:'إدارة الدردشة العامة (كتم/حظر)',delete_chat_messages:'حذف رسائل الدردشة العامة',view_dm_reports:'عرض بلاغات الخاص',review_dm_reports:'مراجعة بلاغات الخاص',moderate_dm:'إدارة الرسائل الخاصة',delete_dm_messages:'حذف رسائل الخاص'};
+async function ownerLoadRolePermissions(){
+ if(!xoraIsAppOwner)return;
+ const root=document.getElementById('ownerRolePermissions');if(!root)return;
+ root.textContent='جارٍ تحميل الصلاحيات من قاعدة البيانات…';
+ const {data,error}=await xoraSupabase.rpc('owner_list_role_permissions');
+ if(error){root.textContent='تعذر تحميل الصلاحيات: '+error.message;ownerSetStatus('ownerRolePermissionsStatus','فشل التحميل: '+error.message);return}
+ const rows=Array.isArray(data)?data:[];
+ root.innerHTML='';
+ for(const roleKey of ['manager','moderator']){
+  const section=document.createElement('section');section.className='owner-card';
+  const title=document.createElement('b');title.textContent=roleKey==='manager'?'🛡️ صلاحيات المدير':'🔨 صلاحيات المشرف';section.append(title);
+  for(const [key,label] of Object.entries(ownerPermissionLabels)){
+   const row=document.createElement('label');row.className='owner-check';row.style.display='flex';row.style.alignItems='center';row.style.justifyContent='space-between';row.style.gap='12px';
+   const textNode=document.createElement('span');textNode.textContent=label;
+   const toggle=document.createElement('input');toggle.type='checkbox';toggle.checked=rows.some(x=>x.role_key===roleKey&&x.permission_key===key&&x.enabled===true);
+   toggle.onchange=async()=>{
+    toggle.disabled=true;ownerSetStatus('ownerRolePermissionsStatus','جارٍ حفظ '+label+'…');
+    const {data:ok,error:saveError}=await xoraSupabase.rpc('owner_set_role_permission',{p_role_key:roleKey,p_permission_key:key,p_enabled:toggle.checked});
+    toggle.disabled=false;
+    if(saveError||ok!==true){toggle.checked=!toggle.checked;ownerSetStatus('ownerRolePermissionsStatus','لم تُحفظ الصلاحية: '+(saveError?.message||'لم يؤكد الخادم نجاح العملية'));return}
+    ownerSetStatus('ownerRolePermissionsStatus','تم حفظ صلاحية '+label+' لـ '+(roleKey==='manager'?'المدير':'المشرف')+'.');
+   };
+   row.append(textNode,toggle);section.append(row);
+  }
+  root.append(section);
+ }
+ if(!rows.length)ownerSetStatus('ownerRolePermissionsStatus','لا توجد صلاحيات معرفة في قاعدة البيانات؛ تحقق من إعداد الصلاحيات قبل منح أدوار إدارية.');
+ else ownerSetStatus('ownerRolePermissionsStatus','تم تحميل '+rows.length+' إعداد صلاحية من الخادم.');
+}
 async function ownerLoadStats(){const [u,l,p,w]=await Promise.all([xoraSupabase.from('profiles').select('id',{count:'exact',head:true}),xoraSupabase.from('streams').select('id',{count:'exact',head:true}).eq('status','live'),xoraSupabase.from('coin_purchase_requests').select('id',{count:'exact',head:true}).eq('status','pending'),xoraSupabase.from('wallets').select('coins')]);document.getElementById('ownerUsersCount').textContent=u.count??'—';document.getElementById('ownerLiveCount').textContent=l.count??'—';document.getElementById('ownerPendingCount').textContent=p.count??'—';document.getElementById('ownerCoinsCount').textContent=(w.data||[]).reduce((n,x)=>n+Number(x.coins||0),0).toLocaleString('ar')}
 async function ownerLoadUsers(){if(!xoraIsAppOwner)return;const q=document.getElementById('ownerUserSearch').value.trim();const root=document.getElementById('ownerUsersList');root.textContent='جارٍ تحميل الأعضاء…';const {data,error}=await xoraSupabase.rpc('owner_list_users',{p_search:q||null,p_limit:100});if(error){root.textContent='تعذر تحميل الأعضاء: '+error.message;return}ownerUsersCache=Array.isArray(data)?data:[];ownerRenderUsers(ownerUsersCache)}
 function ownerSearchUsers(){const q=document.getElementById('ownerUserSearch').value.trim().toLowerCase();ownerRenderUsers(ownerUsersCache.filter(u=>(u.username||'').toLowerCase().includes(q)))}
