@@ -1185,7 +1185,7 @@ function ownerBuildDashboard(){
  if(stats){
   const values=['ownerUsersCount','ownerLiveCount','ownerPendingCount','ownerCoinsCount'];
   values.forEach((id,i)=>{const source=stats.querySelector('#'+id);const target=overview.querySelector('#'+id+'Mirror');if(source&&target){const sync=()=>target.textContent=source.textContent;sync();if(window.MutationObserver)new MutationObserver(sync).observe(source,{childList:true,characterData:true,subtree:true});}});
-  stats.remove();
+  stats.style.display='none';nav.append(stats);
  }
  if(hero)hero.remove();
  const panels=document.createElement('div');panels.id='ownerDashboardPanels';panels.className='owner-clean-panels';
