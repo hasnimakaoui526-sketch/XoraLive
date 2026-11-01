@@ -589,7 +589,56 @@
 #ownerScreen .owner-center-footer .back{width:100%;border-radius:11px!important;padding:11px!important;background:#292319!important;border:1px solid #665333!important;color:#e2c27c!important}
 #ownerScreen #ownerPanelStatus{font-size:10px;text-align:center;color:#aaa2b1;padding:8px}
 @media(max-width:360px){#ownerScreen .owner-center-grid{gap:7px}#ownerScreen .owner-center-tile{padding:9px;min-height:72px;gap:8px}#ownerScreen .owner-center-icon{flex-basis:35px;width:35px;height:35px}}
-</style></head>
+</style><style id="xora-live-ui-request-20261101">
+/* Requested live-screen-only adjustments */
+#liveRoomScreen #liveHostDashboard{display:none!important}
+#liveRoomScreen .live-room-heading{display:none!important}
+#liveRoomScreen #liveRoomComments{
+  flex:0 0 auto!important;
+  min-height:0!important;
+  height:auto!important;
+  max-height:none!important;
+  margin:0 4px 2px!important;
+  padding:4px!important;
+  gap:0!important;
+  border:0!important;
+  border-radius:12px!important;
+  background:transparent!important;
+  box-shadow:none!important
+}
+#liveRoomScreen #liveRoomCommentsHead,
+#liveRoomScreen #liveRoomCommentList{display:none!important}
+#liveRoomScreen #liveRoomCommentForm{display:flex!important;gap:6px!important;margin:0!important}
+#liveRoomScreen #liveRoomCommentInput{
+  min-height:38px!important;
+  height:38px!important;
+  padding:7px 11px!important;
+  border-radius:11px!important;
+  font-size:12px!important
+}
+#liveRoomScreen #liveRoomCommentForm button{
+  min-height:38px!important;
+  height:38px!important;
+  padding:0 13px!important;
+  border-radius:11px!important;
+  font-size:11px!important
+}
+#liveRoomScreen #liveGuestPanel.show{
+  position:absolute!important;
+  z-index:18!important;
+  top:58px!important;
+  left:8px!important;
+  right:8px!important;
+  max-height:18dvh!important;
+  overflow:auto!important;
+  background:rgba(12,8,18,.22)!important;
+  border:1px solid rgba(220,190,240,.22)!important;
+  box-shadow:none!important;
+  backdrop-filter:blur(2px)!important;
+  -webkit-backdrop-filter:blur(2px)!important
+}
+</style>
+</head>
 <body><main class="app">
 <header class="top"><div class="brand">Xora <span>live</span></div><div class="actions"><button class="wallet" onclick="showWalletInfo()">XONA <span id="walletCoins">…</span></button><button class="iconbtn" aria-label="الرسائل" onclick="openInbox()">✉</button><button class="iconbtn" aria-label="الإشعارات" onclick="openNotifications()">♧</button><button id="ownerEntry" class="iconbtn owner-entry" aria-label="لوحة المالك" title="لوحة المالك" onclick="openOwnerPanel()">♛</button></div></header>
 <section class="hero"><div class="eyebrow">عالمك… على الهواء</div><h1>اكتشف عالماً مباشراً</h1><p>لحظات حية وتجارب تجمعنا في مكان واحد</p><div class="live-pill"><i class="dot"></i> <b id="liveCount">0</b> بث مباشر الآن</div></section>
