@@ -9,8 +9,14 @@ s2=re.sub(r"\.enableAudio\(\s*audioTrack\s*\)", ".enableAudio()", s2)
 if "await customElements.whenDefined('rtk-meeting')" not in s2 and 'await customElements.whenDefined("rtk-meeting")' not in s2:
     s2=s2.replace("const el=document.createElement('rtk-meeting');", "await customElements.whenDefined('rtk-meeting');const el=document.createElement('rtk-meeting');", 1)
 css=Path("android-fixes/live-screen-fix.css").read_text(encoding="utf-8")
-if "xora-live-layout-final-2026-11" not in s2:
-    s2 += "\n<style id='xora-live-layout-final-2026-11'>\n" + css + "\n</style>\n"
+style_start = "<style id='xora-live-layout-final-2026-11'>"
+style_end = "</style>"
+if style_start in s2:
+    before, rest = s2.split(style_start, 1)
+    _, after = rest.split(style_end, 1)
+    s2 = before + style_start + "\n" + css + "\n" + style_end + after
+else:
+    s2 += "\n" + style_start + "\n" + css + "\n" + style_end + "\n"
 if s2==s:
     raise SystemExit("Patch did not match any source code; refusing to build an unchanged APK.")
 p.write_text(s2,encoding="utf-8")
