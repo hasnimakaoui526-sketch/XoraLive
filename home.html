@@ -217,7 +217,7 @@
 @media(max-width:380px){.account-wallet{align-items:flex-start;flex-direction:column}.account-wallet-actions{width:100%;flex-direction:row}.account-wallet-actions button{flex:1}.account-identity{padding:0 12px}.account-cover{height:128px}}
 </style><style>html.xora-auth-check body{visibility:hidden}</style><script>document.documentElement.classList.add("xora-auth-check")</script>
 <style>
-.owner-entry{display:none!important}.owner-entry.ready{display:inline-flex!important}
+.owner-entry{display:none!important}.owner-entry.ready{display:inline-flex!important}body:not(.xora-owner) #ownerEntry,body:not(.xora-owner) #ownerScreen{display:none!important}
 .owner-screen h2{margin:18px 0 10px}.owner-hero{background:linear-gradient(135deg,#382044,#1a1422 65%,#3b2a22);border:1px solid #73513e;border-radius:20px;padding:16px;margin:14px 0}
 .owner-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.owner-stat{background:#1b1522;border:1px solid #49364f;border-radius:14px;padding:12px}.owner-stat b{display:block;color:#e8c98b;font-size:22px}.owner-stat span{font-size:11px;color:#b9a9c4}
 .owner-card{background:#191421;border:1px solid #49364f;border-radius:16px;padding:13px;margin:10px 0}.owner-card-head{display:flex;align-items:center;gap:10px}.owner-card-head img{width:42px;height:42px;border-radius:50%;object-fit:cover}.owner-card-head strong{display:block}.owner-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.owner-fields input,.owner-fields select,.owner-panel-input{width:100%;min-width:0;background:#241b2d;color:#fff;border:1px solid #594267;border-radius:10px;padding:10px;font:inherit;font-size:12px}.owner-field{min-width:0}.owner-field label{display:block;color:#c8b9ce;font-size:10px;margin:0 0 5px}.owner-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}.owner-actions button{flex:1;min-width:110px}.owner-section-title{font-size:15px;font-weight:900;margin:22px 0 8px;color:#f3dfb4}.owner-rank-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.owner-rank{background:#1d1726;border:1px solid #403148;border-radius:12px;padding:10px;font-size:11px}.owner-rank b{display:block;color:#e8c98b;font-size:12px;margin-bottom:4px}.owner-status{font-size:11px;color:#b9a9c4;margin-top:7px;white-space:pre-wrap}.owner-inline{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.owner-inline input{flex:1;min-width:100px}.owner-danger{background:#512235!important}.owner-check{display:flex;align-items:center;gap:7px;color:#d8c9df;font-size:12px}
@@ -906,7 +906,18 @@ function filterStreams(){const q=(document.getElementById('search')?.value||'').
 document.querySelectorAll('#tabs button').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('#tabs button').forEach(x=>x.classList.remove('active'));b.classList.add('active');activeFilter=b.dataset.filter;if(activeFilter==='follow'){if(!xoraUser){openAuth();return}filterFollowStreams()}else filterStreams()}));
 document.querySelectorAll('.stream').forEach(card=>card.addEventListener('click',()=>openWatch(card)));
 let currentHost={name:'',img:'',bio:'',profileId:null,streamKey:''},currentDmUser=null,cameraStream=null,dmChannel=null;
-function showScreen(id){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('show'));document.getElementById(id).classList.add('show');document.body.style.overflow='hidden'}
+function showScreen(id){
+ if(id==='ownerScreen'&&xoraIsAppOwner!==true){
+  if(typeof toast==='function')toast('هذه اللوحة مخصصة لمالك التطبيق فقط');
+  return false;
+ }
+ const screen=document.getElementById(id);
+ if(!screen)return false;
+ document.querySelectorAll('.screen').forEach(x=>x.classList.remove('show'));
+ screen.classList.add('show');
+ document.body.style.overflow='hidden';
+ return true;
+}
 function closeScreen(id){document.getElementById(id).classList.remove('show');document.body.style.overflow=''}
 function goHome(){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('show'));document.body.style.overflow=''}
 function openWatch(card){const name=card.querySelector('strong').textContent,img=card.querySelector('img').src;currentHost={name,img,bio:card.querySelector('.stream-info small')?.textContent||'',profileId:null,streamKey:name};document.getElementById('watchImg').src=img;document.getElementById('watchTitle').textContent=name;document.getElementById('commentList').innerHTML='';document.getElementById('likeBtn').textContent='♥ إعجاب';showScreen('watch');loadStreamInteractions();}
@@ -1299,7 +1310,27 @@ let xoraIsAppOwner=false, ownerUsersCache=[];
 // Front-end visibility fallback for the registered owner account only. All privileged data/actions remain protected by owner-only SQL RPC checks.
 const XORA_OWNER_USER_ID='546429d8-9d49-428b-bff2-85cc2f545976';
 function ownerSetStatus(id,msg){const el=document.getElementById(id);if(el)el.textContent=msg}
-async function checkOwnerAccess(){if(!xoraUser)return false;const serverCheck=await xoraSupabase.rpc('is_app_owner');xoraIsAppOwner=(xoraUser.id===XORA_OWNER_USER_ID)||(!serverCheck.error&&serverCheck.data===true);const b=document.getElementById('ownerEntry');if(b)b.classList.toggle('ready',xoraIsAppOwner);return xoraIsAppOwner}
+async function checkOwnerAccess(){
+ let allowed=false;
+ if(xoraUser){
+  try{
+   const serverCheck=await xoraSupabase.rpc('is_app_owner');
+   allowed=!serverCheck.error&&serverCheck.data===true;
+  }catch(_){allowed=false;}
+ }
+ xoraIsAppOwner=allowed;
+ document.body.classList.toggle('xora-owner',allowed);
+ const button=document.getElementById('ownerEntry');
+ if(button)button.classList.toggle('ready',allowed);
+ if(!allowed){
+  const panel=document.getElementById('ownerScreen');
+  if(panel?.classList.contains('show')){
+   panel.classList.remove('show');
+   document.body.style.overflow='';
+  }
+ }
+ return allowed;
+}
 async function openOwnerPanel(){if(!xoraUser){openAuth();return}const ok=await checkOwnerAccess();if(!ok){toast('هذه اللوحة مخصصة لمالك التطبيق فقط');return}showScreen('ownerScreen');await ownerLoadAll();if(ownerDmListTimer)clearInterval(ownerDmListTimer);ownerDmListTimer=setInterval(()=>{if(xoraIsAppOwner&&document.getElementById('ownerScreen')?.classList.contains('show')&&!ownerDmSelected)ownerDmLoadConversations()},8000)}
 let ownerDmSelected=null,ownerDmPollTimer=null,ownerDmListTimer=null,ownerDmLastMessageAt=null,ownerDmMessagesCache=[];
 async function ownerDmLoadConversations(){
