@@ -29,6 +29,30 @@ jobs:
           test -f app/src/main/assets/home.html
           test -f android-fixes/MainActivity.java
           test -f android-fixes/AndroidManifest.xml
+          # Preserve the Android application identity and assign every build a
+          # strictly increasing versionCode so upgrades install over prior builds.
+          python3 - <<'PY'
+          from pathlib import Path
+          import os, re
+          p = Path("app/build.gradle")
+          s = p.read_text(encoding="utf-8")
+          if not re.search(r"applicationId\\s+['\\\"]com\\.xoralive\\.app['\\\"]", s):
+              raise SystemExit("Unexpected applicationId; refusing to produce an incompatible app.")
+          run_number = int(os.environ["GITHUB_RUN_NUMBER"])
+          version_code = 1000 + run_number
+          if version_code >= 2100000000:
+              raise SystemExit("Android versionCode limit reached.")
+          if not re.search(r"versionCode\\s+\\d+", s):
+              raise SystemExit("Could not find versionCode; refusing an unsafe build.")
+          s = re.sub(r"versionCode\\s+\\d+", f"versionCode {version_code}", s, count=1)
+          if not re.search(r"versionName\\s+['\\\"][^'\\\"]+['\\\"]", s):
+              raise SystemExit("Could not find versionName.")
+          s = re.sub(r"versionName\\s+['\\\"][^'\\\"]+['\\\"]", f'versionName "1.0.{run_number}"', s, count=1)
+          p.write_text(s, encoding="utf-8")
+          print(f"Android upgrade identity preserved; versionCode={version_code}, versionName=1.0.{run_number}")
+          PY
+          grep -q 'applicationId .com.xoralive.app.' app/build.gradle
+          grep -q "versionCode 1000" app/build.gradle || grep -q "versionCode 1[0-9][0-9][0-9]" app/build.gradle
           cp android-fixes/MainActivity.java app/src/main/java/com/xoralive/app/MainActivity.java
           cp android-fixes/AndroidManifest.xml app/src/main/AndroidManifest.xml
           cp home.html app/src/main/assets/home.html
