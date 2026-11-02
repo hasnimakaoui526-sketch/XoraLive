@@ -138,8 +138,29 @@ jobs:
           test -n "$ANDROID_KEYSTORE_PASSWORD"
           test -n "$ANDROID_KEY_PASSWORD"
           mkdir -p app/keystore
-          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > app/keystore/xora-release.jks
-          test -s app/keystore/xora-release.jks
+          # Clipboard copies can contain line breaks or non-base64 decoration.
+          # Normalize the secret, decode strictly, then validate the actual keystore
+          # and alias before touching the Gradle configuration.
+          python3 - <<'PY'
+          import base64
+          import os
+          import re
+          from pathlib import Path
+          raw = os.environ["ANDROID_KEYSTORE_BASE64"]
+          cleaned = re.sub(r"[^A-Za-z0-9_+/=-]", "", raw).replace("_", "/").replace("-", "+")
+          cleaned = cleaned.rstrip("=")
+          cleaned += "=" * ((4 - len(cleaned) % 4) % 4)
+          try:
+              data = base64.b64decode(cleaned, validate=True)
+          except Exception as exc:
+              raise SystemExit("ANDROID_KEYSTORE_BASE64 is not valid Base64. Re-copy the complete Base64 file into that GitHub secret.") from exc
+          if len(data) < 512:
+              raise SystemExit("Decoded keystore is unexpectedly small; the Base64 secret appears incomplete.")
+          Path("app/keystore/xora-release.jks").write_bytes(data)
+          print(f"Decoded Android keystore ({len(data)} bytes).")
+          PY
+          keytool -list -keystore app/keystore/xora-release.jks -storepass "$ANDROID_KEYSTORE_PASSWORD" -alias "$ANDROID_KEY_ALIAS" >/dev/null
+          echo "Android keystore and alias validated."
           python3 - <<'PY'
           from pathlib import Path
           import re
