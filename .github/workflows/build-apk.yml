@@ -54,7 +54,7 @@ jobs:
                   found_name = True
           if not found_code or not found_name:
               raise SystemExit("Missing versionCode/versionName; refusing an unsafe build.")
-          p.write_text("\\n".join(lines) + "\\n", encoding="utf-8")
+          p.write_text("\n".join(lines) + "\n", encoding="utf-8")
           print(f"Android upgrade identity preserved; versionCode={version_code}, versionName=1.0.{run_number}")
           PY
           cp android-fixes/MainActivity.java app/src/main/java/com/xoralive/app/MainActivity.java
