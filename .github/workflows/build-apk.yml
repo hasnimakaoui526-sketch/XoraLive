@@ -33,7 +33,7 @@ jobs:
           # strictly increasing versionCode so upgrades install over prior builds.
           python3 - <<'PY'
           from pathlib import Path
-          import os, re
+          import os
           p = Path("app/build.gradle")
           s = p.read_text(encoding="utf-8")
           if "applicationId 'com.xoralive.app'" not in s and 'applicationId "com.xoralive.app"' not in s:
@@ -42,13 +42,19 @@ jobs:
           version_code = 1000 + run_number
           if version_code >= 2100000000:
               raise SystemExit("Android versionCode limit reached.")
-          if not re.search(r"versionCode\\s+\\d+", s):
-              raise SystemExit("Could not find versionCode; refusing an unsafe build.")
-          s = re.sub(r"versionCode\\s+\\d+", f"versionCode {version_code}", s, count=1)
-          if not re.search(r"versionName\\s+.*", s):
-              raise SystemExit("Could not find versionName.")
-          s = re.sub(r"versionName\\s+.*", f'versionName "1.0.{run_number}"', s, count=1)
-          p.write_text(s, encoding="utf-8")
+          lines = s.splitlines()
+          found_code = found_name = False
+          for i, line in enumerate(lines):
+              indent = line[:len(line) - len(line.lstrip())]
+              if line.strip().startswith("versionCode "):
+                  lines[i] = indent + f"versionCode {version_code}"
+                  found_code = True
+              elif line.strip().startswith("versionName "):
+                  lines[i] = indent + f'versionName "1.0.{run_number}"'
+                  found_name = True
+          if not found_code or not found_name:
+              raise SystemExit("Missing versionCode/versionName; refusing an unsafe build.")
+          p.write_text("\\n".join(lines) + "\\n", encoding="utf-8")
           print(f"Android upgrade identity preserved; versionCode={version_code}, versionName=1.0.{run_number}")
           PY
           cp android-fixes/MainActivity.java app/src/main/java/com/xoralive/app/MainActivity.java
