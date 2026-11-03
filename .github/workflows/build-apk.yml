@@ -170,7 +170,7 @@ jobs:
           import re
           p = Path("app/build.gradle")
           s = p.read_text(encoding="utf-8")
-          m = re.search(r"\\bandroid\\s*\\{", s)
+          m = re.search(r"\bandroid\s*\{", s)
           if not m:
               raise SystemExit("Could not find android { block in app/build.gradle")
           def close_brace(text, opening):
@@ -204,19 +204,19 @@ jobs:
           """
           s = s[:android_open+1] + signing + s[android_open+1:]
           android_close = close_brace(s, android_open)
-          bt = re.search(r"\\bbuildTypes\\s*\\{", s[android_open:android_close+1])
+          bt = re.search(r"\bbuildTypes\s*\{", s[android_open:android_close+1])
           if bt:
               bt_open = android_open + bt.end() - 1
               bt_close = close_brace(s, bt_open)
-              rel = re.search(r"\\brelease\\s*\\{", s[bt_open:bt_close])
+              rel = re.search(r"\brelease\s*\{", s[bt_open:bt_close])
               if rel:
                   rel_open = bt_open + rel.end() - 1
-                  s = s[:rel_open+1] + "\\n            signingConfig signingConfigs.xoraCiRelease" + s[rel_open+1:]
+                  s = s[:rel_open+1] + "\n            signingConfig signingConfigs.xoraCiRelease" + s[rel_open+1:]
               else:
-                  s = s[:bt_open+1] + "\\n        release { signingConfig signingConfigs.xoraCiRelease }\\n" + s[bt_open+1:]
+                  s = s[:bt_open+1] + "\n        release { signingConfig signingConfigs.xoraCiRelease }\n" + s[bt_open+1:]
           else:
               android_close = close_brace(s, android_open)
-              s = s[:android_close] + "\\n    buildTypes { release { signingConfig signingConfigs.xoraCiRelease } }\\n" + s[android_close:]
+              s = s[:android_close] + "\n    buildTypes { release { signingConfig signingConfigs.xoraCiRelease } }\\n" + s[android_close:]
           p.write_text(s, encoding="utf-8")
           print("Dedicated Xora release signing config installed.")
           PY
