@@ -159,7 +159,7 @@ jobs:
           Path("app/keystore/xora-release.jks").write_bytes(data)
           print(f"Decoded Android keystore ({len(data)} bytes).")
           PY
-          if ! keytool -list -keystore app/keystore/xora-release.jks -storepass "$ANDROID_KEYSTORE_PASSWORD" -alias "$ANDROID_KEY_ALIAS" >/dev/null 2>keytool-validation-error.txt; then
+          if ! keytool -list -keystore app/keystore/xora-release.jks -storepass "$ANDROID_KEYSTORE_PASSWORD" -alias "$ANDROID_KEY_ALIAS" >keytool-validation-error.txt 2>&1; then
             echo "KEYSTORE_VALIDATION_FAILED: safe keytool diagnostic follows:"
             cat keytool-validation-error.txt
             exit 1
