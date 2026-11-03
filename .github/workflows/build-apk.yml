@@ -216,7 +216,7 @@ jobs:
                   s = s[:bt_open+1] + "\n        release { signingConfig signingConfigs.xoraCiRelease }\n" + s[bt_open+1:]
           else:
               android_close = close_brace(s, android_open)
-              s = s[:android_close] + "\n    buildTypes { release { signingConfig signingConfigs.xoraCiRelease } }\\n" + s[android_close:]
+              s = s[:android_close] + "\n    buildTypes { release { signingConfig signingConfigs.xoraCiRelease } }\n" + s[android_close:]
           p.write_text(s, encoding="utf-8")
           print("Dedicated Xora release signing config installed.")
           PY
