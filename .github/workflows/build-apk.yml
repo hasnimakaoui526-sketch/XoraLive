@@ -170,7 +170,7 @@ jobs:
           import re
           p = Path("app/build.gradle")
           s = p.read_text(encoding="utf-8")
-          m = re.search(r"\bandroid\s*\{", s)
+          m = re.search(r"\\bandroid\\s*\\{", s)
           if not m:
               raise SystemExit("Could not find android { block in app/build.gradle")
           def close_brace(text, opening):
@@ -181,7 +181,7 @@ jobs:
                   c = text[i]
                   if quote:
                       if escaped: escaped = False
-                      elif c == "\\": escaped = True
+                      elif c == "\\\\": escaped = True
                       elif c == quote: quote = None
                       continue
                   if c in ("'", '"'): quote = c
@@ -191,35 +191,36 @@ jobs:
                       if depth == 0: return i
               raise SystemExit("Unbalanced Gradle braces")
           android_open = s.find("{", m.start())
-          android_close = close_brace(s, android_open)
+          # A dedicated CI config avoids incomplete release configs in source.
           signing = """
               signingConfigs {
-                  release {
+                  xoraCiRelease {
                       storeFile file("keystore/xora-release.jks")
-                      storePassword System.getenv("ANDROID_KEYSTORE_PASSWORD")
-                      keyAlias System.getenv("ANDROID_KEY_ALIAS")
-                      keyPassword System.getenv("ANDROID_KEY_PASSWORD")
+                      storePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
+                      keyAlias = System.getenv("ANDROID_KEY_ALIAS")
+                      keyPassword = System.getenv("ANDROID_KEY_PASSWORD")
                   }
               }
           """
-          if "signingConfigs {" not in s:
-              s = s[:android_open+1] + signing + s[android_open+1:]
-          bt = re.search(r"\bbuildTypes\s*\{", s[android_open:android_close+len(signing)])
+          s = s[:android_open+1] + signing + s[android_open+1:]
+          android_close = close_brace(s, android_open)
+          bt = re.search(r"\\bbuildTypes\\s*\\{", s[android_open:android_close+1])
           if bt:
               bt_open = android_open + bt.end() - 1
               bt_close = close_brace(s, bt_open)
-              rel = re.search(r"\brelease\s*\{", s[bt_open:bt_close])
+              rel = re.search(r"\\brelease\\s*\\{", s[bt_open:bt_close])
               if rel:
                   rel_open = bt_open + rel.end() - 1
-                  if "signingConfig signingConfigs.release" not in s[rel_open:close_brace(s, rel_open)]:
-                      s = s[:rel_open+1] + "\n            signingConfig signingConfigs.release" + s[rel_open+1:]
+                  s = s[:rel_open+1] + "\\n            signingConfig signingConfigs.xoraCiRelease" + s[rel_open+1:]
               else:
-                  s = s[:bt_open+1] + "\n        release { signingConfig signingConfigs.release }\n" + s[bt_open+1:]
+                  s = s[:bt_open+1] + "\\n        release { signingConfig signingConfigs.xoraCiRelease }\\n" + s[bt_open+1:]
           else:
               android_close = close_brace(s, android_open)
-              s = s[:android_close] + "\n    buildTypes { release { signingConfig signingConfigs.release } }\n" + s[android_close:]
+              s = s[:android_close] + "\\n    buildTypes { release { signingConfig signingConfigs.xoraCiRelease } }\\n" + s[android_close:]
           p.write_text(s, encoding="utf-8")
+          print("Dedicated Xora release signing config installed.")
           PY
+
       - name: Build debug and signed release APKs
         run: gradle --no-daemon assembleDebug assembleRelease
       - name: Verify generated APKs
