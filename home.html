@@ -1515,8 +1515,8 @@ xoraSupabase.auth.onAuthStateChange(async(event,session)=>{
   <div class="shorts-head"><button class="back" onclick="showScreen('shortVideosScreen')">← رجوع للفيديوهات</button><strong>🎬 نشر فيديو</strong></div>
   <div class="shorts-publish-page">
     <div class="shorts-create-title">انشر لحظتك في فيديو قصير</div>
-    <label class="shorts-pick" for="shortVideoFile"><span>＋</span><b>اختر فيديو من هاتفك</b><small>MP4 أو WebM أو MOV · حتى 100MB</small></label>
-    <input id="shortVideoFile" type="file" accept="video/mp4,video/webm,video/quicktime" hidden onchange="previewShortVideo(event)">
+    <label class="shorts-pick" for="shortVideoFile"><span>＋</span><b>اختر فيديو من هاتفك</b><small>MP4 (H.264) · حتى 100MB</small></label>
+    <input id="shortVideoFile" type="file" accept="video/mp4,.mp4" hidden onchange="previewShortVideo(event)">
     <video id="shortVideoPreview" class="shorts-preview" controls playsinline hidden></video>
     <textarea id="shortVideoCaption" maxlength="500" placeholder="اكتب وصفاً للفيديو…"></textarea>
     <div class="shorts-create-foot"><small id="shortVideoStatus">شارك فيديو عمودياً وقصيراً مع الجميع</small><button id="shortVideoPublish" onclick="publishShortVideo()">نشر الفيديو</button></div>
@@ -1765,7 +1765,7 @@ xoraSupabase.auth.onAuthStateChange(async(event,session)=>{
 
 
 <script id="xora-shorts-functionality">
-let xoraShortPreviewUrl=null;
+let xoraShortPreviewUrl=null,xoraShortPreviewPlayable=false;
 function openShortVideos(){
   if(!xoraUser){openAuth();return}
   showScreen('shortVideosScreen');
@@ -1776,30 +1776,33 @@ function openShortPublish(){
   showScreen('shortVideoPublishScreen');
 }
 function previewShortVideo(event){
-  const file=event.target.files?.[0],status=document.getElementById('shortVideoStatus'),preview=document.getElementById('shortVideoPreview');
+  const file=event.target.files?.[0],status=document.getElementById('shortVideoStatus'),preview=document.getElementById('shortVideoPreview'),publish=document.getElementById('shortVideoPublish');
+  xoraShortPreviewPlayable=false;publish.disabled=true;
   if(xoraShortPreviewUrl){URL.revokeObjectURL(xoraShortPreviewUrl);xoraShortPreviewUrl=null}
-  if(!file){preview.hidden=true;preview.removeAttribute('src');return}
-  if(!['video/mp4','video/webm','video/quicktime'].includes(file.type)){status.textContent='صيغة الفيديو غير مدعومة';event.target.value='';return}
+  preview.pause();preview.removeAttribute('src');preview.hidden=true;
+  if(!file){status.textContent='اختر فيديو بصيغة MP4 (H.264)';return}
+  if(file.type!=='video/mp4'){status.textContent='لضمان التشغيل على أندرويد، ارفع فيديو MP4 بترميز H.264. حوّل MOV أو WebM إلى MP4 أولاً.';event.target.value='';return}
   if(file.size>104857600){status.textContent='حجم الفيديو يتجاوز 100MB';event.target.value='';return}
-  xoraShortPreviewUrl=URL.createObjectURL(file);preview.src=xoraShortPreviewUrl;preview.hidden=false;status.textContent='الفيديو جاهز للنشر · '+(file.size/1048576).toFixed(1)+'MB';
+  xoraShortPreviewUrl=URL.createObjectURL(file);preview.src=xoraShortPreviewUrl;preview.hidden=false;preview.muted=true;status.textContent='جارٍ فحص توافق الفيديو مع جهازك…';
+  preview.onloadeddata=()=>{xoraShortPreviewPlayable=true;publish.disabled=false;status.textContent='الفيديو متوافق وجاهز للنشر · '+(file.size/1048576).toFixed(1)+'MB'};
+  preview.onerror=()=>{xoraShortPreviewPlayable=false;publish.disabled=true;status.textContent='هذا الفيديو لا يعمل على جهازك. حوّله إلى MP4 بترميز H.264 ثم أعد اختياره.'};
 }
 async function publishShortVideo(){
   if(!xoraUser){openAuth();return}
   const picker=document.getElementById('shortVideoFile'),file=picker.files?.[0],caption=document.getElementById('shortVideoCaption').value.trim(),button=document.getElementById('shortVideoPublish'),status=document.getElementById('shortVideoStatus');
   if(!file){status.textContent='اختر فيديو أولاً';return}
+  if(file.type!=='video/mp4'||!xoraShortPreviewPlayable){status.textContent='لا يمكن نشر هذا الملف قبل التأكد من تشغيله. استخدم MP4 بترميز H.264.';return}
   if(file.size>104857600){status.textContent='الحد الأقصى 100MB';return}
-  if(!['video/mp4','video/webm','video/quicktime'].includes(file.type)){status.textContent='اختر MP4 أو WebM أو MOV';return}
   button.disabled=true;status.textContent='جارٍ رفع الفيديو… لا تغلق الصفحة';
   try{
-    const ext=({'video/mp4':'mp4','video/webm':'webm','video/quicktime':'mov'})[file.type];
-    const path=xoraUser.id+'/'+crypto.randomUUID()+'.'+ext;
-    const uploaded=await xoraSupabase.storage.from('xora-short-videos').upload(path,file,{contentType:file.type,cacheControl:'3600',upsert:false});
+    const path=xoraUser.id+'/'+crypto.randomUUID()+'.mp4';
+    const uploaded=await xoraSupabase.storage.from('xora-short-videos').upload(path,file,{contentType:'video/mp4',cacheControl:'3600',upsert:false});
     if(uploaded.error)throw uploaded.error;
     const publicUrl=xoraSupabase.storage.from('xora-short-videos').getPublicUrl(uploaded.data.path).data.publicUrl;
     const saved=await xoraSupabase.from('short_videos').insert({user_id:xoraUser.id,video_url:publicUrl,caption}).select('id').single();
     if(saved.error){await xoraSupabase.storage.from('xora-short-videos').remove([path]);throw saved.error}
     picker.value='';document.getElementById('shortVideoCaption').value='';
-    const preview=document.getElementById('shortVideoPreview');preview.pause();preview.removeAttribute('src');preview.hidden=true;
+    const preview=document.getElementById('shortVideoPreview');preview.pause();preview.removeAttribute('src');preview.hidden=true;preview.onloadeddata=null;preview.onerror=null;xoraShortPreviewPlayable=false;
     if(xoraShortPreviewUrl){URL.revokeObjectURL(xoraShortPreviewUrl);xoraShortPreviewUrl=null}
     status.textContent='تم نشر الفيديو بنجاح 🎉';showScreen('shortVideosScreen');await loadShortVideos();
   }catch(error){status.textContent='تعذر النشر: '+(error.message||'خطأ غير معروف')}
@@ -1861,7 +1864,7 @@ async function loadShortVideos(){
     const wrap=document.createElement('div');wrap.className='shorts-video-wrap';
     const video=document.createElement('video');video.src=v.video_url;video.controls=true;video.autoplay=true;video.playsInline=true;video.setAttribute('autoplay','');video.setAttribute('playsinline','');video.preload='auto';video.loop=true;video.muted=true;video.defaultMuted=true;video.setAttribute('muted','');video.setAttribute('controlsList','nodownload');video.setAttribute('webkit-playsinline','');
     const playbackError=document.createElement('div');playbackError.className='shorts-playback-error';playbackError.textContent='تعذر تشغيل هذا الفيديو. قد تكون صيغة الترميز غير مدعومة.';playbackError.hidden=true;
-    video.addEventListener('error',()=>{playbackError.hidden=false});video.addEventListener('loadeddata',()=>{playbackError.hidden=true});
+    video.addEventListener('error',()=>{playbackError.textContent='تعذر تشغيل هذا الفيديو على جهازك. قد يكون محفوظاً بترميز غير متوافق؛ يجب إعادة رفعه بصيغة MP4 (H.264).';playbackError.hidden=false});video.addEventListener('loadeddata',()=>{playbackError.hidden=true});
     wrap.append(video,playbackError);
     const meta=document.createElement('div');meta.className='shorts-meta';
     const author=document.createElement('div');author.className='shorts-author';
