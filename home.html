@@ -1612,6 +1612,10 @@ body.xora-owner #ownerStockImportBar{display:flex}
 #shortVideosScreen .shorts-comment-form button{padding:0 11px}
 #shortVideosScreen .shorts-loading,#shortVideosScreen .shorts-empty{margin:14px;border-radius:14px}
 #shortVideosScreen .shorts-delete{margin-right:auto}
+#shortVideosScreen .shorts-owner-controls{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-inline-start:auto}
+#shortVideosScreen .shorts-owner-controls button{border:1px solid #b58bcb;border-radius:18px;padding:7px 10px;background:#25172b;color:#f4ddff;font-size:11px;font-weight:850}
+#shortVideosScreen .shorts-owner-controls .shorts-delete{margin:0;background:#451e30;border-color:#a34e68;color:#ffd5df}
+#shortVideosScreen .shorts-hidden-tag{display:inline-block;margin-inline-start:6px;padding:4px 8px;border-radius:10px;background:#6b4b20;color:#ffe2a7;font-size:10px;font-weight:800}
 @media(min-width:600px){#shortVideosScreen{max-width:520px;margin:auto}#shortVideosScreen .shorts-card{max-width:none}}
 </style>
 <style id="xora-compact-live-guest-requests">
@@ -1852,7 +1856,9 @@ async function importStockShortVideos(){
 async function loadShortVideos(){
   const root=document.getElementById('shortVideosFeed');if(!root)return;
   root.innerHTML='<div class="shorts-loading">جارٍ تحميل الفيديوهات…</div>';
-  const {data:realVideos,error}=await xoraSupabase.from('short_videos').select('id,user_id,video_url,caption,created_at,is_hidden').eq('is_hidden',false).order('created_at',{ascending:false}).limit(40);
+  let videosQuery=xoraSupabase.from('short_videos').select('id,user_id,video_url,caption,created_at,is_hidden');
+  if(!xoraIsAppOwner)videosQuery=videosQuery.eq('is_hidden',false);
+  const {data:realVideos,error}=await videosQuery.order('created_at',{ascending:false}).limit(100);
   if(error){root.textContent='تعذر تحميل الفيديوهات: '+error.message;return}
   const demoVideos=[
     {id:'xora-demo-short-1',user_id:'demo-lina',video_url:'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',caption:'لحظة هادئة من الطبيعة 🌸',created_at:new Date(Date.now()-60000).toISOString(),demo:true,demoName:'Lina_Moments',demoAvatar:'https://placehold.co/96x96/5b315f/ffffff?text=L'},
@@ -1913,7 +1919,17 @@ async function loadShortVideos(){
     const name=document.createElement('button');name.type='button';name.className='profile-link';name.textContent=p.username||'مستخدم Xora';
     if(!v.demo)name.onclick=()=>openUserProfile(v.user_id,p.username||'مستخدم Xora',p.avatar_url||'');
     author.append(avatar,name);
-    if(!v.demo&&xoraUser&&v.user_id===xoraUser.id){const del=document.createElement('button');del.className='shorts-delete';del.textContent='حذف الفيديو';del.onclick=()=>deleteShortVideo(v.id,v.video_url);author.appendChild(del)}
+    if(!v.demo&&xoraUser&&(xoraIsAppOwner||v.user_id===xoraUser.id)){
+      if(xoraIsAppOwner){
+        const moderation=document.createElement('div');moderation.className='shorts-owner-controls';
+        const visibility=document.createElement('button');visibility.type='button';visibility.className='shorts-owner-visibility';visibility.textContent=v.is_hidden?'إظهار الفيديو':'إخفاء الفيديو';visibility.onclick=()=>ownerToggleShortVideoVisibility(v.id,!!v.is_hidden,visibility);
+        const del=document.createElement('button');del.type='button';del.className='shorts-delete';del.textContent='حذف نهائياً';del.onclick=()=>deleteShortVideo(v.id,v.video_url);
+        moderation.append(visibility,del);author.appendChild(moderation);
+        if(v.is_hidden){const hiddenTag=document.createElement('span');hiddenTag.className='shorts-hidden-tag';hiddenTag.textContent='مخفي عن الأعضاء';author.appendChild(hiddenTag)}
+      }else{
+        const del=document.createElement('button');del.className='shorts-delete';del.textContent='حذف الفيديو';del.onclick=()=>deleteShortVideo(v.id,v.video_url);author.appendChild(del)
+      }
+    }
     const caption=document.createElement('div');caption.className='shorts-caption';caption.textContent=v.caption||'';
     const date=document.createElement('div');date.className='shorts-date';date.textContent=new Date(v.created_at).toLocaleString('ar');
     const actions=document.createElement('div');actions.className='shorts-social-actions';
@@ -2043,13 +2059,31 @@ async function deleteShortVideoComment(commentId,videoId){
   await loadShortVideos();
 }
 function confirmShortVideoDelete(){return new Promise(resolve=>{const overlay=document.createElement('div');overlay.className='short-delete-confirm-overlay';const panel=document.createElement('div');panel.className='short-delete-confirm-panel';const del=document.createElement('button');del.type='button';del.textContent='حذف';del.className='short-delete-confirm-action danger';const cancel=document.createElement('button');cancel.type='button';cancel.textContent='إلغاء';cancel.className='short-delete-confirm-action';const finish=value=>{overlay.remove();resolve(value)};del.onclick=()=>finish(true);cancel.onclick=()=>finish(false);overlay.addEventListener('click',e=>{if(e.target===overlay)finish(false)});panel.append(del,cancel);overlay.append(panel);document.body.append(overlay)})}
+async function ownerToggleShortVideoVisibility(videoId,isHidden,button){
+  if(!xoraUser||!xoraIsAppOwner){toast('هذه الميزة مخصصة لمالك التطبيق فقط');return}
+  button.disabled=true;
+  try{
+    const {error}=await xoraSupabase.from('short_videos').update({is_hidden:!isHidden}).eq('id',videoId);
+    if(error)throw error;
+    toast(isHidden?'تم إظهار الفيديو للأعضاء':'تم إخفاء الفيديو عن الأعضاء');
+    await loadShortVideos();
+  }catch(error){toast('تعذر تغيير ظهور الفيديو: '+(error.message||'خطأ'))}
+  finally{button.disabled=false}
+}
 async function deleteShortVideo(id,url){
-  if(!xoraUser||!await confirmShortVideoDelete())return;
-  const {error}=await xoraSupabase.from('short_videos').delete().eq('id',id).eq('user_id',xoraUser.id);
+  if(!xoraUser||(!xoraIsAppOwner&&!confirmShortVideoDelete()))return;
+  if(xoraIsAppOwner&&!await confirmShortVideoDelete())return;
+  let deletion=xoraSupabase.from('short_videos').delete().eq('id',id);
+  if(!xoraIsAppOwner)deletion=deletion.eq('user_id',xoraUser.id);
+  const {error}=await deletion;
   if(error){alert('تعذر حذف الفيديو: '+error.message);return}
   const marker='/storage/v1/object/public/xora-short-videos/';
-  const at=url.indexOf(marker);
-  if(at>=0){const path=decodeURIComponent(url.slice(at+marker.length));await xoraSupabase.storage.from('xora-short-videos').remove([path])}
+  const at=String(url||'').indexOf(marker);
+  if(at>=0){
+    const path=decodeURIComponent(String(url).slice(at+marker.length).split(/[?#]/)[0]);
+    const removed=await xoraSupabase.storage.from('xora-short-videos').remove([path]);
+    if(removed.error)toast('حُذف الفيديو من الخلاصة، لكن تعذر حذف ملفه من التخزين: '+removed.error.message);
+  }
   await loadShortVideos();
 }
 
