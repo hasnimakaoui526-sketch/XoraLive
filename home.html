@@ -1523,6 +1523,7 @@ xoraSupabase.auth.onAuthStateChange(async(event,session)=>{
 <section class="screen" id="shortVideosScreen">
   <div class="shorts-head"><button class="back" onclick="closeScreen('shortVideosScreen')">← رجوع</button><strong>نشر فيديو</strong><button class="shorts-refresh" onclick="loadShortVideos()">↻ تحديث</button></div>
   <button class="shorts-open-publish" onclick="openShortPublish()">＋ نشر فيديو</button>
+  <div id="ownerStockImportBar" class="owner-stock-import"><button id="ownerStockImportButton" onclick="importStockShortVideos()">＋ استيراد فيديوهات مجانية إلى الخلاصة</button><small id="ownerStockImportStatus">للمالك فقط · 4 مقاطع MP4</small></div>
   <div class="shorts-feed-title"><b>الفيديوهات المنشورة</b><small>اكتشف وشاهد الأحدث</small></div>
   <div id="shortVideosFeed" class="shorts-feed"><div class="shorts-loading">جارٍ تحميل الفيديوهات…</div></div>
 </section>
@@ -1538,6 +1539,13 @@ xoraSupabase.auth.onAuthStateChange(async(event,session)=>{
   </div>
 </section>
 <section class="screen" id="savedShortVideosScreen"><div class="shorts-head"><button class="back" onclick="closeScreen('savedShortVideosScreen')">← العودة إلى حسابي</button><strong>🔖 العناصر المحفوظة</strong><button class="shorts-refresh" onclick="loadSavedShortVideos()">↻ تحديث</button></div><div id="savedShortVideosFeed" class="saved-short-feed"><div class="shorts-loading">جارٍ تحميل المحفوظات…</div></div></section>
+<style id="xora-owner-stock-import">
+#ownerStockImportBar{display:none;align-items:center;gap:9px;flex-wrap:wrap;margin:8px 0 13px;padding:10px;border:1px solid #80603c;border-radius:13px;background:#1c1720}
+body.xora-owner #ownerStockImportBar{display:flex}
+#ownerStockImportButton{border:1px solid #a78049;border-radius:10px;padding:9px 12px;background:linear-gradient(120deg,#d1a75f,#8d5ab1);color:#17101b;font-size:11px;font-weight:900}
+#ownerStockImportButton:disabled{opacity:.55}
+#ownerStockImportStatus{font-size:10px;color:#d5c6dc}
+</style>
 <style id="xora-shorts-two-page-layout">
 #shortVideosScreen .shorts-open-publish{display:block;width:auto;min-width:116px;margin:8px 0 14px auto;padding:9px 14px;border:1px solid #9d72b7;border-radius:12px;background:linear-gradient(120deg,#b98a4b,#8b5ab3);color:#160e1c;font-size:12px;font-weight:900}
 #shortVideosScreen .shorts-feed-title{margin-top:8px}
@@ -1821,6 +1829,20 @@ async function publishShortVideo(){
     if(xoraShortPreviewUrl){URL.revokeObjectURL(xoraShortPreviewUrl);xoraShortPreviewUrl=null}
     status.textContent='تم نشر الفيديو بنجاح 🎉';showScreen('shortVideosScreen');await loadShortVideos();
   }catch(error){status.textContent='تعذر النشر: '+(error.message||'خطأ غير معروف')}
+  finally{button.disabled=false}
+}
+async function importStockShortVideos(){
+  if(!document.body.classList.contains('xora-owner')){toast('هذه العملية مخصصة لمالك التطبيق فقط');return}
+  const button=document.getElementById('ownerStockImportButton'),status=document.getElementById('ownerStockImportStatus');
+  if(!button||!status)return;
+  button.disabled=true;status.textContent='جارٍ تنزيل الفيديوهات ورفعها إلى مساحة XoraLive…';
+  try{
+    const result=await xoraLiveRequest({action:'import_stock_shorts'});
+    const count=(result.imported||[]).length,failed=(result.failed||[]).length;
+    status.textContent='تم رفع/تفعيل '+count+' من '+result.total+' فيديوهات'+(failed?' · تعذر '+failed:'')+'.';
+    if(count){await loadShortVideos();toast('اكتمل استيراد '+count+' فيديوهات إلى الخلاصة')}
+    if(failed)console.warn('Xora stock import failures:',result.failed);
+  }catch(error){status.textContent='تعذر الاستيراد: '+(error.message||'خطأ غير معروف')}
   finally{button.disabled=false}
 }
 async function loadShortVideos(){
