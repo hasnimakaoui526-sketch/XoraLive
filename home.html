@@ -1859,8 +1859,10 @@ async function loadShortVideos(){
   for(const v of videos){
     const p=v.demo?{username:v.demoName,avatar_url:v.demoAvatar}:byId[v.user_id]||{},card=document.createElement('article');card.className='shorts-card'+(v.demo?' shorts-demo-card':'');
     const wrap=document.createElement('div');wrap.className='shorts-video-wrap';
-    const video=document.createElement('video');video.dataset.src=v.video_url;video.controls=false;video.playsInline=true;video.preload='none';video.loop=true;video.muted=false;video.setAttribute('controlsList','nodownload');video.addEventListener('click',()=>{if(video.paused)video.play().catch(()=>{});else video.pause()});
-    wrap.appendChild(video);
+    const video=document.createElement('video');video.src=v.video_url;video.controls=true;video.playsInline=true;video.setAttribute('playsinline','');video.preload='metadata';video.loop=true;video.muted=true;video.setAttribute('controlsList','nodownload');video.setAttribute('webkit-playsinline','');
+    const playbackError=document.createElement('div');playbackError.className='shorts-playback-error';playbackError.textContent='تعذر تشغيل هذا الفيديو. قد تكون صيغة الترميز غير مدعومة.';playbackError.hidden=true;
+    video.addEventListener('error',()=>{playbackError.hidden=false});video.addEventListener('loadeddata',()=>{playbackError.hidden=true});
+    wrap.append(video,playbackError);
     const meta=document.createElement('div');meta.className='shorts-meta';
     const author=document.createElement('div');author.className='shorts-author';
     const avatar=document.createElement('img');avatar.src=p.avatar_url||'https://placehold.co/80x80/302139/e8c98b?text=X';avatar.alt='';
@@ -1903,7 +1905,7 @@ async function loadShortVideos(){
   }
   root.appendChild(feed);
   if(window.xoraShortObserver)window.xoraShortObserver.disconnect();
-  window.xoraShortObserver=new IntersectionObserver(entries=>{entries.forEach(entry=>{const video=entry.target.querySelector('video');if(!video)return;if(entry.isIntersecting){if(!video.src&&video.dataset.src){video.src=video.dataset.src;video.preload='metadata';video.load()}if(entry.intersectionRatio>=0.65){feed.querySelectorAll('video').forEach(other=>{if(other!==video)other.pause()});video.play().catch(()=>{})}else video.pause()}else{video.pause();if(video.src){video.removeAttribute('src');video.load();video.preload='none'}}})},{root:feed,rootMargin:'120% 0px',threshold:[0,0.65,1]});
+  window.xoraShortObserver=new IntersectionObserver(entries=>{entries.forEach(entry=>{const video=entry.target.querySelector('video');if(!video)return;if(entry.isIntersecting&&entry.intersectionRatio>=0.65){feed.querySelectorAll('video').forEach(other=>{if(other!==video)other.pause()});video.play().catch(()=>{video.controls=true})}else video.pause()})},{root:feed,rootMargin:'80% 0px',threshold:[0,0.65,1]});
   feed.querySelectorAll('.shorts-card').forEach(card=>window.xoraShortObserver.observe(card));
 }
 async function toggleShortVideoSave(videoId,button){
@@ -2112,4 +2114,10 @@ async function backToTextRooms(){if(textRoomChannel){await xoraSupabase.removeCh
 #shortVideosScreen .shorts-open-publish{position:relative!important;top:auto!important;right:auto!important;left:auto!important;align-self:flex-end!important;flex:0 0 auto!important;margin:4px 12px 8px!important;z-index:8!important;display:block!important;}
 #shortVideosScreen .shorts-head{position:relative!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:8px!important;box-sizing:border-box!important;}
 #shortVideosScreen .shorts-head>strong{min-width:0!important;flex:1 1 auto!important;text-align:center!important;white-space:nowrap!important;}
+</style>
+
+<style id="xora-fix-short-video-playback">
+#shortVideosScreen .shorts-video-wrap video{display:block!important;position:relative;z-index:1;pointer-events:auto;}
+#shortVideosScreen .shorts-video-wrap video::-webkit-media-controls{opacity:1!important;}
+#shortVideosScreen .shorts-playback-error{position:absolute;z-index:4;left:12px;right:12px;top:50%;transform:translateY(-50%);padding:14px;border:1px solid #9a6b80;border-radius:13px;background:#170d18ed;color:#ffe1e8;text-align:center;font-size:13px;}
 </style>
