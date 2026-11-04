@@ -1569,6 +1569,7 @@ xoraSupabase.auth.onAuthStateChange(async(event,session)=>{
 #shortVideosScreen .shorts-date{color:#d4cbd9}
 #shortVideosScreen .shorts-social-actions{border:0;margin:8px 0 5px;padding:0}
 #shortVideosScreen .shorts-social-actions button{background:#261522e8}
+#shortVideosScreen .shorts-save{border:1px solid #b58bcb!important;border-radius:20px;padding:8px 12px;color:#f2d9ff!important;font-weight:850}
 #shortVideosScreen .shorts-comments{max-height:116px;overflow:auto;margin-top:5px;padding:7px 9px;background:#100d16d9}
 #shortVideosScreen .shorts-comment-list{max-height:54px}
 #shortVideosScreen .shorts-comment-form{margin-top:6px}
@@ -1848,7 +1849,7 @@ async function loadShortVideos(){
   for(const v of videos){
     const p=v.demo?{username:v.demoName,avatar_url:v.demoAvatar}:byId[v.user_id]||{},card=document.createElement('article');card.className='shorts-card'+(v.demo?' shorts-demo-card':'');
     const wrap=document.createElement('div');wrap.className='shorts-video-wrap';
-    const video=document.createElement('video');video.src=v.video_url;video.controls=false;video.playsInline=true;video.preload='metadata';video.loop=true;video.muted=false;video.setAttribute('controlsList','nodownload');video.addEventListener('click',()=>{if(video.paused)video.play().catch(()=>{});else video.pause()});
+    const video=document.createElement('video');video.dataset.src=v.video_url;video.controls=false;video.playsInline=true;video.preload='none';video.loop=true;video.muted=false;video.setAttribute('controlsList','nodownload');video.addEventListener('click',()=>{if(video.paused)video.play().catch(()=>{});else video.pause()});
     wrap.appendChild(video);
     const meta=document.createElement('div');meta.className='shorts-meta';
     const author=document.createElement('div');author.className='shorts-author';
@@ -1860,8 +1861,9 @@ async function loadShortVideos(){
     const caption=document.createElement('div');caption.className='shorts-caption';caption.textContent=v.caption||'';
     const date=document.createElement('div');date.className='shorts-date';date.textContent=new Date(v.created_at).toLocaleString('ar');
     meta.append(author,caption,date);
+    const actions=document.createElement('div');actions.className='shorts-social-actions';
+    const saveBtn=document.createElement('button');saveBtn.type='button';saveBtn.className='shorts-save';saveBtn.textContent='⬇ حفظ الفيديو';saveBtn.onclick=()=>downloadShortVideo(v.video_url,v.id,saveBtn);actions.appendChild(saveBtn);
     if(!v.demo){
-      const actions=document.createElement('div');actions.className='shorts-social-actions';
       const videoLikes=likesByVideo[v.id]||[],liked=!!xoraUser&&videoLikes.some(x=>x.user_id===xoraUser.id);
       const likeBtn=document.createElement('button');likeBtn.className='shorts-like'+(liked?' is-liked':'');likeBtn.innerHTML=(liked?'♥':'♡')+' <span>'+videoLikes.length+'</span> إعجاب';likeBtn.setAttribute('aria-label','إعجاب بالفيديو');likeBtn.onclick=()=>toggleShortVideoLike(v.id,likeBtn);
       const commentCount=document.createElement('span');commentCount.className='shorts-comment-count';commentCount.textContent='💬 '+(commentsByVideo[v.id]||[]).length+' تعليق';
@@ -1884,14 +1886,29 @@ async function loadShortVideos(){
       const send=document.createElement('button');send.type='submit';send.textContent='إرسال';send.disabled=!xoraUser;
       form.append(input,send);form.onsubmit=e=>{e.preventDefault();postShortVideoComment(v.id,input,send,commentCount,commentList)};
       commentArea.append(commentTitle,commentList,form);
-      meta.append(actions,commentArea);
+      meta.append(commentArea);
     }
+    meta.append(actions);
     card.append(wrap,meta);feed.appendChild(card);
   }
   root.appendChild(feed);
   if(window.xoraShortObserver)window.xoraShortObserver.disconnect();
-  window.xoraShortObserver=new IntersectionObserver(entries=>{entries.forEach(entry=>{const video=entry.target.querySelector('video');if(!video)return;if(entry.isIntersecting&&entry.intersectionRatio>=0.65){document.querySelectorAll('#shortVideosFeed video').forEach(other=>{if(other!==video)other.pause()});video.play().catch(()=>{})}else video.pause()})},{root:feed,threshold:[0,0.65,1]});
+  window.xoraShortObserver=new IntersectionObserver(entries=>{entries.forEach(entry=>{const video=entry.target.querySelector('video');if(!video)return;if(entry.isIntersecting){if(!video.src&&video.dataset.src){video.src=video.dataset.src;video.preload='metadata';video.load()}if(entry.intersectionRatio>=0.65){feed.querySelectorAll('video').forEach(other=>{if(other!==video)other.pause()});video.play().catch(()=>{})}else video.pause()}else{video.pause();if(video.src){video.removeAttribute('src');video.load();video.preload='none'}}})},{root:feed,rootMargin:'120% 0px',threshold:[0,0.65,1]});
   feed.querySelectorAll('.shorts-card').forEach(card=>window.xoraShortObserver.observe(card));
+}
+async function downloadShortVideo(url,videoId,button){
+  if(!url||!/^https:\/\//i.test(url)){toast('رابط الفيديو غير صالح');return}
+  const original=button.textContent;button.disabled=true;button.textContent='جارٍ تجهيز الفيديو…';
+  try{
+    const response=await fetch(url,{mode:'cors'});if(!response.ok)throw new Error('تعذر جلب الفيديو');
+    const blob=await response.blob();if(!blob.size)throw new Error('ملف الفيديو فارغ');
+    const objectUrl=URL.createObjectURL(blob),a=document.createElement('a');
+    const ext=(blob.type.match(/video\/(mp4|webm|quicktime)/i)||[])[1]||'mp4';
+    a.href=objectUrl;a.download='XoraLive-'+String(videoId).replace(/[^a-zA-Z0-9_-]/g,'')+'.'+(ext==='quicktime'?'mov':ext);document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(objectUrl),60000);button.textContent='✓ تم الحفظ';
+    setTimeout(()=>{if(button.isConnected)button.textContent=original},2200);
+  }catch(error){window.open(url,'_blank','noopener');button.textContent=original;toast('فتحنا الفيديو؛ استخدم قائمة المتصفح لحفظه إذا لم يبدأ التنزيل')}
+  finally{button.disabled=false}
 }
 async function toggleShortVideoLike(videoId,button){
   if(!xoraUser){openAuth();return}
