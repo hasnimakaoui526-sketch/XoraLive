@@ -978,7 +978,7 @@ async function loadProfileContent(id,p){
  const seen=p.last_seen?new Date(p.last_seen).getTime():0,online=seen>0&&(Date.now()-seen)<120000;
  presence.textContent=online?'🟢 نشط الآن':'⚫ غير نشط حالياً'+(seen?' · آخر ظهور '+new Date(seen).toLocaleString('ar'):' · لا يتوفر وقت آخر ظهور');
  const [v,live]=await Promise.all([
-  xoraSupabase.from('short_videos').select('id,video_url,caption,created_at,is_hidden').eq('user_id',id).eq('is_hidden',false).order('created_at',{ascending:false}).limit(30),
+  xoraSupabase.from('short_videos').select('id,video_url,caption,created_at').eq('user_id',id).order('created_at',{ascending:false}).limit(30),
   xoraSupabase.from('streams').select('id').eq('host_user_id',id).eq('status','live').limit(1)
  ]);
  videosRoot.innerHTML='';
@@ -1934,8 +1934,7 @@ async function importStockShortVideos(){
 async function loadShortVideos(){
   const root=document.getElementById('shortVideosFeed');if(!root)return;
   root.innerHTML='<div class="shorts-loading">جارٍ تحميل الفيديوهات…</div>';
-  let videosQuery=xoraSupabase.from('short_videos').select('id,user_id,video_url,caption,created_at,is_hidden');
-  if(!xoraIsAppOwner)videosQuery=videosQuery.eq('is_hidden',false);
+  let videosQuery=xoraSupabase.from('short_videos').select('id,user_id,video_url,caption,created_at');
   const {data:realVideos,error}=await videosQuery.order('created_at',{ascending:false}).limit(100);
   if(error){root.textContent='تعذر تحميل الفيديوهات: '+error.message;return}
   const demoVideos=[
@@ -2001,10 +2000,7 @@ async function loadShortVideos(){
     if(!v.demo&&xoraUser&&(xoraIsAppOwner||v.user_id===xoraUser.id)){
       if(xoraIsAppOwner){
         const moderation=document.createElement('div');moderation.className='shorts-owner-controls';
-        const visibility=document.createElement('button');visibility.type='button';visibility.className='shorts-owner-visibility';visibility.textContent=v.is_hidden?'إظهار الفيديو':'إخفاء الفيديو';visibility.onclick=()=>ownerToggleShortVideoVisibility(v.id,!!v.is_hidden,visibility);
-        const del=document.createElement('button');del.type='button';del.className='shorts-delete';del.textContent='حذف نهائياً';del.onclick=()=>deleteShortVideo(v.id,v.video_url);
-        moderation.append(visibility,del);author.appendChild(moderation);
-        if(v.is_hidden){const hiddenTag=document.createElement('span');hiddenTag.className='shorts-hidden-tag';hiddenTag.textContent='مخفي عن الأعضاء';author.appendChild(hiddenTag)}
+        const del=document.createElement('button');del.type='button';del.className='shorts-delete';del.textContent='حذف الفيديو';del.onclick=()=>deleteShortVideo(v.id,v.video_url);moderation.append(del);author.appendChild(moderation);
       }else{
         const del=document.createElement('button');del.className='shorts-delete';del.textContent='حذف الفيديو';del.onclick=()=>deleteShortVideo(v.id,v.video_url);author.appendChild(del)
       }
@@ -2013,11 +2009,10 @@ async function loadShortVideos(){
     const date=document.createElement('div');date.className='shorts-date';date.textContent=new Date(v.created_at).toLocaleString('ar');
     const actions=document.createElement('div');actions.className='shorts-social-actions';
     if(!v.demo){
-      const saveBtn=document.createElement('button');saveBtn.type='button';saveBtn.className='shorts-save';const isSaved=(window.xoraSavedShortIds||new Set()).has(v.id);saveBtn.textContent=isSaved?'🔖 محفوظ':'🔖 حفظ';saveBtn.classList.toggle('is-saved',isSaved);saveBtn.onclick=()=>toggleShortVideoSave(v.id,saveBtn);actions.appendChild(saveBtn);
+      const saveBtn=document.createElement('button');saveBtn.type='button';saveBtn.className='shorts-save';const isSaved=(window.xoraSavedShortIds||new Set()).has(v.id);saveBtn.textContent='🔖';saveBtn.title=isSaved?'إزالة من المحفوظات':'حفظ الفيديو';saveBtn.setAttribute('aria-label',saveBtn.title);saveBtn.classList.toggle('is-saved',isSaved);saveBtn.onclick=()=>toggleShortVideoSave(v.id,saveBtn);actions.appendChild(saveBtn);
       const videoLikes=likesByVideo[v.id]||[],liked=!!xoraUser&&videoLikes.some(x=>x.user_id===xoraUser.id);
-      const likeBtn=document.createElement('button');likeBtn.className='shorts-like'+(liked?' is-liked':'');likeBtn.innerHTML=(liked?'♥':'♡')+' <span>'+videoLikes.length+'</span> إعجاب';likeBtn.setAttribute('aria-label','إعجاب بالفيديو');likeBtn.onclick=()=>toggleShortVideoLike(v.id,likeBtn);
-      const commentCount=document.createElement('span');commentCount.className='shorts-comment-count';commentCount.textContent='💬 '+(commentsByVideo[v.id]||[]).length+' تعليق';
-      actions.append(likeBtn,commentCount);
+      const likeBtn=document.createElement('button');likeBtn.className='shorts-like'+(liked?' is-liked':'');likeBtn.innerHTML=(liked?'♥':'♡')+' <span>'+videoLikes.length+'</span>';likeBtn.setAttribute('aria-label','إعجاب بالفيديو');likeBtn.onclick=()=>toggleShortVideoLike(v.id,likeBtn);
+      const commentCount=document.createElement('span');commentCount.className='shorts-comment-count';commentCount.textContent='💬 '+(commentsByVideo[v.id]||[]).length;
       const commentArea=document.createElement('div');commentArea.className='shorts-comments';
       const commentTitle=document.createElement('div');commentTitle.className='shorts-comments-title';commentTitle.textContent='التعليقات';
       const commentList=document.createElement('div');commentList.className='shorts-comment-list';
@@ -2056,11 +2051,11 @@ async function toggleShortVideoSave(videoId,button){
     if(wasSaved){
       const removed=await xoraSupabase.from('saved_short_videos').delete().eq('user_id',xoraUser.id).eq('video_id',videoId);
       if(removed.error)throw removed.error;
-      window.xoraSavedShortIds?.delete(videoId);button.classList.remove('is-saved');button.textContent='🔖 حفظ';toast('أزيل الفيديو من العناصر المحفوظة');
+      window.xoraSavedShortIds?.delete(videoId);button.classList.remove('is-saved');button.textContent='🔖';button.title='حفظ الفيديو';button.setAttribute('aria-label','حفظ الفيديو');toast('أزيل الفيديو من العناصر المحفوظة');
     }else{
       const added=await xoraSupabase.from('saved_short_videos').insert({user_id:xoraUser.id,video_id:videoId});
       if(added.error&&added.error.code!=='23505')throw added.error;
-      window.xoraSavedShortIds??=new Set();window.xoraSavedShortIds.add(videoId);button.classList.add('is-saved');button.textContent='🔖 محفوظ';toast('تم حفظ الفيديو في حسابك');
+      window.xoraSavedShortIds??=new Set();window.xoraSavedShortIds.add(videoId);button.classList.add('is-saved');button.textContent='🔖';button.title='إزالة من المحفوظات';button.setAttribute('aria-label','إزالة من المحفوظات');toast('تم حفظ الفيديو في حسابك');
     }
     const count=await xoraSupabase.from('saved_short_videos').select('id',{count:'exact',head:true}).eq('user_id',xoraUser.id);
     const node=document.getElementById('savedShortCount');if(node)node.textContent=String(count.count??window.xoraSavedShortIds?.size??0);
@@ -2084,7 +2079,7 @@ async function loadSavedShortVideos(){
   const ids=(saved.data||[]).map(x=>x.video_id);window.xoraSavedShortIds=new Set(ids);
   const countNode=document.getElementById('savedShortCount');if(countNode)countNode.textContent=String(ids.length);
   if(!ids.length){root.innerHTML='<div class="shorts-empty">لم تحفظ أي فيديو بعد. اضغط 🔖 حفظ أسفل الفيديوهات لإضافتها هنا.</div>';return}
-  const result=await xoraSupabase.from('short_videos').select('id,user_id,video_url,caption,created_at,is_hidden').eq('is_hidden',false).in('id',ids);
+  const result=await xoraSupabase.from('short_videos').select('id,user_id,video_url,caption,created_at').in('id',ids);
   if(result.error){root.textContent='تعذر تحميل الفيديوهات: '+result.error.message;return}
   const userIds=[...new Set((result.data||[]).map(v=>v.user_id))];
   const profiles=userIds.length?await xoraSupabase.from('profiles').select('id,username,avatar_url').in('id',userIds):{data:[],error:null};
@@ -2286,4 +2281,28 @@ async function backToTextRooms(){if(textRoomChannel){await xoraSupabase.removeCh
 .short-delete-confirm-panel{width:min(280px,90vw);display:flex;gap:12px;padding:16px;background:#17121d;border:1px solid #80618b;border-radius:18px;box-shadow:0 18px 55px #000b}
 .short-delete-confirm-action{flex:1;min-height:46px;border:1px solid #80618b;border-radius:12px;background:#302338;color:#f5e9f2;font-size:16px;font-weight:700}
 .short-delete-confirm-action.danger{background:linear-gradient(135deg,#a52d52,#6e1736);border-color:#d36a8a;color:#fff}
+</style>
+
+
+<style id="xora-shorts-compact-social-final">
+/* Like and save: compact icon rail, stacked vertically on one side */
+#shortVideosScreen .shorts-card .shorts-meta{padding-right:62px!important;padding-bottom:calc(env(safe-area-inset-bottom) + 12px)!important}
+#shortVideosScreen .shorts-social-actions{position:absolute!important;right:10px!important;bottom:calc(env(safe-area-inset-bottom) + 116px)!important;z-index:8!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:flex-end!important;gap:12px!important;width:42px!important;margin:0!important;padding:0!important;border:0!important}
+#shortVideosScreen .shorts-social-actions button{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:1px!important;width:40px!important;min-width:40px!important;height:42px!important;min-height:42px!important;padding:2px!important;border:0!important;border-radius:12px!important;background:#17101dbd!important;color:#fff!important;font-size:23px!important;line-height:1!important;text-shadow:0 1px 4px #000!important;box-shadow:0 2px 10px #0005!important}
+#shortVideosScreen .shorts-social-actions .shorts-like{color:#ff9fbd!important}
+#shortVideosScreen .shorts-social-actions .shorts-like.is-liked{color:#ff477e!important;background:#48172dbd!important}
+#shortVideosScreen .shorts-social-actions .shorts-like span{font-size:10px!important;color:#fff!important}
+#shortVideosScreen .shorts-social-actions .shorts-save.is-saved{color:#f3cf8b!important;background:#3c2a36!important}
+#shortVideosScreen .shorts-comment-count{display:none!important}
+/* Keep the comment panel short so the video remains the main screen */
+#shortVideosScreen .shorts-comments{max-height:68px!important;overflow:hidden!important;margin:3px 0 0!important;padding:4px 6px!important;border:0!important;border-radius:8px!important;background:#100d16a8!important}
+#shortVideosScreen .shorts-comments-title{display:none!important}
+#shortVideosScreen .shorts-comment-list{max-height:22px!important;min-height:0!important;overflow:auto!important;gap:2px!important}
+#shortVideosScreen .shorts-comment{padding:1px 3px!important;font-size:10px!important;line-height:1.25!important;background:transparent!important}
+#shortVideosScreen .shorts-no-comments{padding:1px!important;font-size:9px!important}
+#shortVideosScreen .shorts-comment-form{height:28px!important;gap:4px!important;margin-top:3px!important}
+#shortVideosScreen .shorts-comment-form input{height:27px!important;min-height:27px!important;padding:3px 7px!important;font-size:10px!important;border-radius:8px!important}
+#shortVideosScreen .shorts-comment-form button{height:27px!important;min-height:27px!important;padding:0 8px!important;font-size:10px!important;border-radius:8px!important}
+#shortVideosScreen .shorts-owner-controls{display:flex!important;align-items:center!important;gap:5px!important}
+#shortVideosScreen .shorts-owner-controls .shorts-delete{padding:5px 9px!important}
 </style>
