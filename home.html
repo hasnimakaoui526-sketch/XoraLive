@@ -1859,7 +1859,7 @@ async function loadShortVideos(){
   for(const v of videos){
     const p=v.demo?{username:v.demoName,avatar_url:v.demoAvatar}:byId[v.user_id]||{},card=document.createElement('article');card.className='shorts-card'+(v.demo?' shorts-demo-card':'');
     const wrap=document.createElement('div');wrap.className='shorts-video-wrap';
-    const video=document.createElement('video');video.src=v.video_url;video.controls=true;video.playsInline=true;video.setAttribute('playsinline','');video.preload='metadata';video.loop=true;video.muted=true;video.setAttribute('controlsList','nodownload');video.setAttribute('webkit-playsinline','');
+    const video=document.createElement('video');video.src=v.video_url;video.controls=true;video.autoplay=true;video.playsInline=true;video.setAttribute('autoplay','');video.setAttribute('playsinline','');video.preload='auto';video.loop=true;video.muted=true;video.defaultMuted=true;video.setAttribute('muted','');video.setAttribute('controlsList','nodownload');video.setAttribute('webkit-playsinline','');
     const playbackError=document.createElement('div');playbackError.className='shorts-playback-error';playbackError.textContent='تعذر تشغيل هذا الفيديو. قد تكون صيغة الترميز غير مدعومة.';playbackError.hidden=true;
     video.addEventListener('error',()=>{playbackError.hidden=false});video.addEventListener('loadeddata',()=>{playbackError.hidden=true});
     wrap.append(video,playbackError);
@@ -1905,8 +1905,11 @@ async function loadShortVideos(){
   }
   root.appendChild(feed);
   if(window.xoraShortObserver)window.xoraShortObserver.disconnect();
-  window.xoraShortObserver=new IntersectionObserver(entries=>{entries.forEach(entry=>{const video=entry.target.querySelector('video');if(!video)return;if(entry.isIntersecting&&entry.intersectionRatio>=0.65){feed.querySelectorAll('video').forEach(other=>{if(other!==video)other.pause()});video.play().catch(()=>{video.controls=true})}else video.pause()})},{root:feed,rootMargin:'80% 0px',threshold:[0,0.65,1]});
+  const playMostVisibleShort=()=>{const cards=[...feed.querySelectorAll('.shorts-card')];let active=null,best=0;cards.forEach(card=>{const r=card.getBoundingClientRect(),visible=Math.max(0,Math.min(r.bottom,window.innerHeight)-Math.max(r.top,0)),ratio=visible/Math.max(1,r.height);if(ratio>best){best=ratio;active=card}});cards.forEach(card=>{const v=card.querySelector('video');if(!v)return;if(card===active&&best>=0.55){if(v.readyState<2)v.load();v.play().catch(()=>{})}else v.pause()})};
+  window.xoraShortObserver=new IntersectionObserver(entries=>{entries.forEach(entry=>{const video=entry.target.querySelector('video');if(!video)return;if(entry.isIntersecting&&entry.intersectionRatio>=0.55){feed.querySelectorAll('video').forEach(other=>{if(other!==video)other.pause()});video.play().catch(()=>{})}else video.pause()})},{root:feed,rootMargin:'0px',threshold:[0,0.55,0.75,1]});
   feed.querySelectorAll('.shorts-card').forEach(card=>window.xoraShortObserver.observe(card));
+  feed.addEventListener('scroll',()=>{if(window.xoraShortScrollFrame)return;window.xoraShortScrollFrame=requestAnimationFrame(()=>{window.xoraShortScrollFrame=0;playMostVisibleShort()})},{passive:true});
+  playMostVisibleShort();
 }
 async function toggleShortVideoSave(videoId,button){
   if(!xoraUser){openAuth();return}
