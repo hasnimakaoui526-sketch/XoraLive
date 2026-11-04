@@ -2071,8 +2071,7 @@ async function ownerToggleShortVideoVisibility(videoId,isHidden,button){
   finally{button.disabled=false}
 }
 async function deleteShortVideo(id,url){
-  if(!xoraUser||(!xoraIsAppOwner&&!confirmShortVideoDelete()))return;
-  if(xoraIsAppOwner&&!await confirmShortVideoDelete())return;
+  if(!xoraUser||!await confirmShortVideoDelete())return;
   let deletion=xoraSupabase.from('short_videos').delete().eq('id',id);
   if(!xoraIsAppOwner)deletion=deletion.eq('user_id',xoraUser.id);
   const {error}=await deletion;
