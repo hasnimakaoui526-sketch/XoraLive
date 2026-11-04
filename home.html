@@ -770,6 +770,7 @@ html,body{
 </div>
 <div class="account-hero"><img class="xora-cover account-cover" id="myCoverPreview" src="https://placehold.co/700x180/302139/e8c98b?text=Xora+Live" alt="غلاف الملف"><div class="account-identity"><div class="account-avatar-wrap"><img class="profile-avatar" id="myAvatar" src="https://placehold.co/120x120/211a2a/e8c98b?text=X" alt="الصورة"></div><div class="account-identity-copy"><div id="myOwnerBadge" class="xora-chip" style="display:none">👑 مالك التطبيق</div><h2 id="myDisplayName">ملفي الشخصي</h2><p id="myDisplayHandle">مساحتك وهويتك في Xora Live</p></div></div>
 <div class="account-stats" id="accountStats"></div></div>
+<div class="account-section"><div class="account-section-title"><b>مكتبتي</b><small>الفيديوهات التي احتفظت بها للعودة إليها لاحقاً</small></div><button type="button" class="account-login" onclick="openSavedShortVideos()">🔖 العناصر المحفوظة <span id="savedShortCount" style="float:left">…</span></button></div>
 <div class="account-wallet"><div><small>محفظتي · رصيد العملات</small><strong>XONA <span id="profileWalletBalance">…</span></strong><p>رصيدك داخل عالم Xora Live</p></div><div class="account-wallet-actions"><button onclick="showWalletInfo()">سجل المحفظة</button><button onclick="openStore()">＋ شحن العملات</button></div></div>
 <div class="account-section"><div class="account-section-title"><b>تطوير الملف الشخصي</b><small>اجعل حسابك يعبر عنك</small></div>
 <div class="account-upload-row"><button type="button" class="secondary" onclick="document.getElementById('profileCoverFile').click()">＋ تغيير الغلاف</button><span class="account-upload-hint">لمسة واحدة لتحديث المظهر</span></div><input id="profileCoverFile" type="file" accept="image/jpeg,image/png,image/webp" hidden onchange="uploadProfileCover(this)">
@@ -1521,6 +1522,7 @@ xoraSupabase.auth.onAuthStateChange(async(event,session)=>{
     <div class="shorts-create-foot"><small id="shortVideoStatus">شارك فيديو عمودياً وقصيراً مع الجميع</small><button id="shortVideoPublish" onclick="publishShortVideo()">نشر الفيديو</button></div>
   </div>
 </section>
+<section class="screen" id="savedShortVideosScreen"><div class="shorts-head"><button class="back" onclick="closeScreen('savedShortVideosScreen')">← العودة إلى حسابي</button><strong>🔖 العناصر المحفوظة</strong><button class="shorts-refresh" onclick="loadSavedShortVideos()">↻ تحديث</button></div><div id="savedShortVideosFeed" class="saved-short-feed"><div class="shorts-loading">جارٍ تحميل المحفوظات…</div></div></section>
 <style id="xora-shorts-two-page-layout">
 #shortVideosScreen .shorts-open-publish{display:block;width:auto;min-width:116px;margin:8px 0 14px auto;padding:9px 14px;border:1px solid #9d72b7;border-radius:12px;background:linear-gradient(120deg,#b98a4b,#8b5ab3);color:#160e1c;font-size:12px;font-weight:900}
 #shortVideosScreen .shorts-feed-title{margin-top:8px}
@@ -1569,7 +1571,13 @@ xoraSupabase.auth.onAuthStateChange(async(event,session)=>{
 #shortVideosScreen .shorts-date{color:#d4cbd9}
 #shortVideosScreen .shorts-social-actions{border:0;margin:8px 0 5px;padding:0}
 #shortVideosScreen .shorts-social-actions button{background:#261522e8}
-#shortVideosScreen .shorts-save{border:1px solid #b58bcb!important;border-radius:20px;padding:8px 12px;color:#f2d9ff!important;font-weight:850}
+#shortVideosScreen .shorts-save,#savedShortVideosScreen .shorts-unsave{border:1px solid #b58bcb!important;border-radius:20px;padding:8px 12px;color:#f2d9ff!important;font-weight:850}
+#shortVideosScreen .shorts-save.is-saved{background:#53354f!important;color:#ffe0a6!important}
+#savedShortVideosScreen{padding:calc(env(safe-area-inset-top) + 12px) 12px calc(env(safe-area-inset-bottom) + 16px);overflow-y:auto;background:#09070d}
+#savedShortVideosScreen .saved-short-card{margin:12px 0;padding:10px;border:1px solid #49364f;border-radius:15px;background:#17121e}
+#savedShortVideosScreen video{display:block;width:100%;max-height:65dvh;aspect-ratio:9/16;object-fit:contain;background:#050407;border-radius:12px}
+#savedShortVideosScreen .saved-short-caption{color:#eee;font-size:13px;margin:9px 0;white-space:pre-wrap}
+#savedShortVideosScreen .saved-short-author{color:#e8c98b;font-size:12px;margin-top:7px}
 #shortVideosScreen .shorts-comments{max-height:116px;overflow:auto;margin-top:5px;padding:7px 9px;background:#100d16d9}
 #shortVideosScreen .shorts-comment-list{max-height:54px}
 #shortVideosScreen .shorts-comment-form{margin-top:6px}
@@ -1824,15 +1832,17 @@ async function loadShortVideos(){
   ];
   const videos=[...demoVideos,...(realVideos||[])];
   const realVideoIds=(realVideos||[]).map(v=>v.id),userIds=[...new Set((realVideos||[]).map(v=>v.user_id))];
-  let profilesResult={data:[],error:null},likesResult={data:[],error:null},commentsResult={data:[],error:null};
+  let profilesResult={data:[],error:null},likesResult={data:[],error:null},commentsResult={data:[],error:null},savedResult={data:[],error:null};
   if(realVideoIds.length){
     [profilesResult,likesResult,commentsResult]=await Promise.all([
       xoraSupabase.from('profiles').select('id,username,avatar_url').in('id',userIds),
       xoraSupabase.from('short_video_likes').select('video_id,user_id').in('video_id',realVideoIds),
-      xoraSupabase.from('short_video_comments').select('id,video_id,user_id,body,created_at').in('video_id',realVideoIds).order('created_at',{ascending:false}).limit(500)
+      xoraSupabase.from('short_video_comments').select('id,video_id,user_id,body,created_at').in('video_id',realVideoIds).order('created_at',{ascending:false}).limit(500),
+      xoraUser?xoraSupabase.from('saved_short_videos').select('video_id').eq('user_id',xoraUser.id):Promise.resolve({data:[],error:null})
     ]);
   }
   if(likesResult.error||commentsResult.error){root.textContent='تعذر تحميل التفاعلات: '+(likesResult.error||commentsResult.error).message;return}
+  window.xoraSavedShortIds=new Set((savedResult.data||[]).map(x=>x.video_id));
   const likes=likesResult.data||[],comments=commentsResult.data||[];
   const profileIds=[...new Set([...userIds,...comments.map(c=>c.user_id)])];
   let commentProfiles=profilesResult.data||[];
@@ -1862,8 +1872,8 @@ async function loadShortVideos(){
     const date=document.createElement('div');date.className='shorts-date';date.textContent=new Date(v.created_at).toLocaleString('ar');
     meta.append(author,caption,date);
     const actions=document.createElement('div');actions.className='shorts-social-actions';
-    const saveBtn=document.createElement('button');saveBtn.type='button';saveBtn.className='shorts-save';saveBtn.textContent='⬇ حفظ الفيديو';saveBtn.onclick=()=>downloadShortVideo(v.video_url,v.id,saveBtn);actions.appendChild(saveBtn);
     if(!v.demo){
+      const saveBtn=document.createElement('button');saveBtn.type='button';saveBtn.className='shorts-save';const isSaved=(window.xoraSavedShortIds||new Set()).has(v.id);saveBtn.textContent=isSaved?'🔖 محفوظ':'🔖 حفظ';saveBtn.classList.toggle('is-saved',isSaved);saveBtn.onclick=()=>toggleShortVideoSave(v.id,saveBtn);actions.appendChild(saveBtn);
       const videoLikes=likesByVideo[v.id]||[],liked=!!xoraUser&&videoLikes.some(x=>x.user_id===xoraUser.id);
       const likeBtn=document.createElement('button');likeBtn.className='shorts-like'+(liked?' is-liked':'');likeBtn.innerHTML=(liked?'♥':'♡')+' <span>'+videoLikes.length+'</span> إعجاب';likeBtn.setAttribute('aria-label','إعجاب بالفيديو');likeBtn.onclick=()=>toggleShortVideoLike(v.id,likeBtn);
       const commentCount=document.createElement('span');commentCount.className='shorts-comment-count';commentCount.textContent='💬 '+(commentsByVideo[v.id]||[]).length+' تعليق';
@@ -1896,20 +1906,52 @@ async function loadShortVideos(){
   window.xoraShortObserver=new IntersectionObserver(entries=>{entries.forEach(entry=>{const video=entry.target.querySelector('video');if(!video)return;if(entry.isIntersecting){if(!video.src&&video.dataset.src){video.src=video.dataset.src;video.preload='metadata';video.load()}if(entry.intersectionRatio>=0.65){feed.querySelectorAll('video').forEach(other=>{if(other!==video)other.pause()});video.play().catch(()=>{})}else video.pause()}else{video.pause();if(video.src){video.removeAttribute('src');video.load();video.preload='none'}}})},{root:feed,rootMargin:'120% 0px',threshold:[0,0.65,1]});
   feed.querySelectorAll('.shorts-card').forEach(card=>window.xoraShortObserver.observe(card));
 }
-async function downloadShortVideo(url,videoId,button){
-  if(!url||!/^https:\/\//i.test(url)){toast('رابط الفيديو غير صالح');return}
-  const original=button.textContent;button.disabled=true;button.textContent='جارٍ تجهيز الفيديو…';
+async function toggleShortVideoSave(videoId,button){
+  if(!xoraUser){openAuth();return}
+  const wasSaved=button.classList.contains('is-saved');button.disabled=true;
   try{
-    const response=await fetch(url,{mode:'cors'});if(!response.ok)throw new Error('تعذر جلب الفيديو');
-    const blob=await response.blob();if(!blob.size)throw new Error('ملف الفيديو فارغ');
-    const objectUrl=URL.createObjectURL(blob),a=document.createElement('a');
-    const ext=(blob.type.match(/video\/(mp4|webm|quicktime)/i)||[])[1]||'mp4';
-    a.href=objectUrl;a.download='XoraLive-'+String(videoId).replace(/[^a-zA-Z0-9_-]/g,'')+'.'+(ext==='quicktime'?'mov':ext);document.body.appendChild(a);a.click();a.remove();
-    setTimeout(()=>URL.revokeObjectURL(objectUrl),60000);button.textContent='✓ تم الحفظ';
-    setTimeout(()=>{if(button.isConnected)button.textContent=original},2200);
-  }catch(error){window.open(url,'_blank','noopener');button.textContent=original;toast('فتحنا الفيديو؛ استخدم قائمة المتصفح لحفظه إذا لم يبدأ التنزيل')}
+    if(wasSaved){
+      const removed=await xoraSupabase.from('saved_short_videos').delete().eq('user_id',xoraUser.id).eq('video_id',videoId);
+      if(removed.error)throw removed.error;
+      window.xoraSavedShortIds?.delete(videoId);button.classList.remove('is-saved');button.textContent='🔖 حفظ';toast('أزيل الفيديو من العناصر المحفوظة');
+    }else{
+      const added=await xoraSupabase.from('saved_short_videos').insert({user_id:xoraUser.id,video_id:videoId});
+      if(added.error&&added.error.code!=='23505')throw added.error;
+      window.xoraSavedShortIds??=new Set();window.xoraSavedShortIds.add(videoId);button.classList.add('is-saved');button.textContent='🔖 محفوظ';toast('تم حفظ الفيديو في حسابك');
+    }
+    const count=await xoraSupabase.from('saved_short_videos').select('id',{count:'exact',head:true}).eq('user_id',xoraUser.id);
+    const node=document.getElementById('savedShortCount');if(node)node.textContent=String(count.count??window.xoraSavedShortIds?.size??0);
+  }catch(e){toast('تعذر تحديث المحفوظات: '+(e.message||'خطأ'))}
   finally{button.disabled=false}
 }
+async function openSavedShortVideos(){
+  if(!xoraUser){openAuth();return}
+  showScreen('savedShortVideosScreen');await loadSavedShortVideos();
+}
+async function loadSavedShortVideos(){
+  const root=document.getElementById('savedShortVideosFeed');if(!root||!xoraUser)return;
+  root.innerHTML='<div class="shorts-loading">جارٍ تحميل العناصر المحفوظة…</div>';
+  const saved=await xoraSupabase.from('saved_short_videos').select('video_id,created_at').eq('user_id',xoraUser.id).order('created_at',{ascending:false});
+  if(saved.error){root.textContent='تعذر تحميل المحفوظات: '+saved.error.message;return}
+  const ids=(saved.data||[]).map(x=>x.video_id);window.xoraSavedShortIds=new Set(ids);
+  const countNode=document.getElementById('savedShortCount');if(countNode)countNode.textContent=String(ids.length);
+  if(!ids.length){root.innerHTML='<div class="shorts-empty">لم تحفظ أي فيديو بعد. اضغط 🔖 حفظ أسفل الفيديوهات لإضافتها هنا.</div>';return}
+  const result=await xoraSupabase.from('short_videos').select('id,user_id,video_url,caption,created_at').in('id',ids);
+  if(result.error){root.textContent='تعذر تحميل الفيديوهات: '+result.error.message;return}
+  const userIds=[...new Set((result.data||[]).map(v=>v.user_id))];
+  const profiles=userIds.length?await xoraSupabase.from('profiles').select('id,username,avatar_url').in('id',userIds):{data:[],error:null};
+  const byId=Object.fromEntries((profiles.data||[]).map(p=>[p.id,p]));
+  root.innerHTML='';
+  for(const v of result.data||[]){
+    const card=document.createElement('article');card.className='saved-short-card';
+    const video=document.createElement('video');video.src=v.video_url;video.controls=true;video.playsInline=true;video.preload='none';video.setAttribute('controlsList','nodownload');
+    const author=document.createElement('div');author.className='saved-short-author';author.textContent='@'+(byId[v.user_id]?.username||'مستخدم Xora');
+    const caption=document.createElement('div');caption.className='saved-short-caption';caption.textContent=v.caption||'';
+    const remove=document.createElement('button');remove.type='button';remove.className='shorts-unsave';remove.textContent='إزالة من المحفوظات';remove.onclick=async()=>{remove.disabled=true;const d=await xoraSupabase.from('saved_short_videos').delete().eq('user_id',xoraUser.id).eq('video_id',v.id);if(d.error){toast('تعذر إزالة الفيديو: '+d.error.message);remove.disabled=false;return}window.xoraSavedShortIds.delete(v.id);card.remove();const n=document.getElementById('savedShortCount');if(n)n.textContent=String(window.xoraSavedShortIds.size);if(!root.querySelector('.saved-short-card'))root.innerHTML='<div class="shorts-empty">لا توجد فيديوهات محفوظة حالياً.</div>'};
+    card.append(video,author,caption,remove);root.appendChild(card);
+  }
+}
+
 async function toggleShortVideoLike(videoId,button){
   if(!xoraUser){openAuth();return}
   button.disabled=true;
