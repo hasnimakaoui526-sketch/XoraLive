@@ -2010,9 +2010,9 @@ async function loadShortVideos(){
     const actions=document.createElement('div');actions.className='shorts-social-actions';
     let commentArea=null;
     if(!v.demo){
-      const saveBtn=document.createElement('button');saveBtn.type='button';saveBtn.className='shorts-save';const isSaved=(window.xoraSavedShortIds||new Set()).has(v.id);saveBtn.textContent='🔖';saveBtn.title=isSaved?'إزالة من المحفوظات':'حفظ الفيديو';saveBtn.setAttribute('aria-label',saveBtn.title);saveBtn.classList.toggle('is-saved',isSaved);saveBtn.onclick=()=>toggleShortVideoSave(v.id,saveBtn);actions.appendChild(saveBtn);
       const videoLikes=likesByVideo[v.id]||[],liked=!!xoraUser&&videoLikes.some(x=>x.user_id===xoraUser.id);
-      const likeBtn=document.createElement('button');likeBtn.className='shorts-like'+(liked?' is-liked':'');likeBtn.innerHTML=(liked?'♥':'♡')+' <span>'+videoLikes.length+'</span>';likeBtn.setAttribute('aria-label','إعجاب بالفيديو');likeBtn.onclick=()=>toggleShortVideoLike(v.id,likeBtn);
+      const likeBtn=document.createElement('button');likeBtn.type='button';likeBtn.className='shorts-like'+(liked?' is-liked':'');likeBtn.innerHTML=(liked?'♥':'♡')+' <span>'+videoLikes.length+'</span>';likeBtn.title='إعجاب بالفيديو';likeBtn.setAttribute('aria-label','إعجاب بالفيديو');likeBtn.onclick=()=>toggleShortVideoLike(v.id,likeBtn);actions.appendChild(likeBtn);
+      const saveBtn=document.createElement('button');saveBtn.type='button';saveBtn.className='shorts-save';const isSaved=(window.xoraSavedShortIds||new Set()).has(v.id);saveBtn.textContent='🔖';saveBtn.title=isSaved?'إزالة من المحفوظات':'حفظ الفيديو';saveBtn.setAttribute('aria-label',saveBtn.title);saveBtn.classList.toggle('is-saved',isSaved);saveBtn.onclick=()=>toggleShortVideoSave(v.id,saveBtn);actions.appendChild(saveBtn);
       const commentCount=document.createElement('span');commentCount.className='shorts-comment-count';commentCount.textContent='💬 '+(commentsByVideo[v.id]||[]).length;
       commentArea=document.createElement('div');commentArea.className='shorts-comments';
       const commentTitle=document.createElement('div');commentTitle.className='shorts-comments-title';commentTitle.textContent='التعليقات';
