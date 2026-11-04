@@ -2133,17 +2133,6 @@ async function deleteShortVideoComment(commentId,videoId){
   await loadShortVideos();
 }
 function confirmShortVideoDelete(){return new Promise(resolve=>{const overlay=document.createElement('div');overlay.className='short-delete-confirm-overlay';const panel=document.createElement('div');panel.className='short-delete-confirm-panel';const del=document.createElement('button');del.type='button';del.textContent='حذف';del.className='short-delete-confirm-action danger';const cancel=document.createElement('button');cancel.type='button';cancel.textContent='إلغاء';cancel.className='short-delete-confirm-action';const finish=value=>{overlay.remove();resolve(value)};del.onclick=()=>finish(true);cancel.onclick=()=>finish(false);overlay.addEventListener('click',e=>{if(e.target===overlay)finish(false)});panel.append(del,cancel);overlay.append(panel);document.body.append(overlay)})}
-async function ownerToggleShortVideoVisibility(videoId,isHidden,button){
-  if(!xoraUser||!xoraIsAppOwner){toast('هذه الميزة مخصصة لمالك التطبيق فقط');return}
-  button.disabled=true;
-  try{
-    const {error}=await xoraSupabase.from('short_videos').update({is_hidden:!isHidden}).eq('id',videoId);
-    if(error)throw error;
-    toast(isHidden?'تم إظهار الفيديو للأعضاء':'تم إخفاء الفيديو عن الأعضاء');
-    await loadShortVideos();
-  }catch(error){toast('تعذر تغيير ظهور الفيديو: '+(error.message||'خطأ'))}
-  finally{button.disabled=false}
-}
 async function deleteShortVideo(id,url){
   if(!xoraUser||!await confirmShortVideoDelete())return;
   let deletion=xoraSupabase.from('short_videos').delete().eq('id',id);
