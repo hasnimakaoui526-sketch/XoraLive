@@ -759,7 +759,16 @@ html,body{
 #ownerScreen #ownerDmThreadMessages{flex:1 1 auto!important;width:100%!important;min-height:0!important;height:auto!important;max-height:none!important;overflow-y:auto!important;overscroll-behavior:contain!important;margin:0!important;border-radius:16px!important;padding:14px!important;background:#14101b!important}
 #ownerScreen #ownerDmThreadStatus{flex:0 0 auto;margin:0;padding:4px 0 calc(env(safe-area-inset-bottom) + 2px);text-align:center;font-size:10px}
 </style>
-<style id="xora-private-image-upload-css">#inboxScreen .group-chat-form{align-items:center;gap:7px}#inboxScreen .group-chat-form input#dmInput{min-width:0;flex:1}#inboxScreen .group-chat-form .group-image-button{flex:0 0 44px;min-width:44px;height:44px;border-radius:13px;background:#2a2032;color:#fff;border:1px solid #574268;font-size:20px;padding:0}#inboxScreen .group-chat-form button[type="submit"]{flex:0 0 auto;min-height:44px;padding:0 15px}#inboxScreen .group-chat-image,#ownerScreen .group-chat-image{max-width:min(100%,280px);max-height:360px;object-fit:contain;border-radius:12px}</style></head>
+<style id="xora-private-image-upload-css">#inboxScreen .group-chat-form{align-items:center;gap:7px}#inboxScreen .group-chat-form input#dmInput{min-width:0;flex:1}#inboxScreen .group-chat-form .group-image-button{flex:0 0 44px;min-width:44px;height:44px;border-radius:13px;background:#2a2032;color:#fff;border:1px solid #574268;font-size:20px;padding:0}#inboxScreen .group-chat-form button[type="submit"]{flex:0 0 auto;min-height:44px;padding:0 15px}#inboxScreen .group-chat-image,#ownerScreen .group-chat-image{max-width:min(100%,280px);max-height:360px;object-fit:contain;border-radius:12px}</style><style id="xora-saved-multiple-accounts">
+.saved-xora-accounts{display:flex;flex-direction:column;gap:8px;margin:8px 0 12px}
+.saved-xora-account{display:flex;align-items:center;gap:8px;padding:10px;background:#211a2b;border:1px solid #594267;border-radius:13px}
+.saved-xora-account-info{display:flex;flex:1;min-width:0;flex-direction:column;gap:3px}
+.saved-xora-account-info b{font-size:12px;color:#f4e7ff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.saved-xora-account-info small{font-size:10px;color:#b9a9c8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.saved-xora-account .account-login{width:auto;min-width:68px;margin:0;padding:8px 10px}
+.saved-xora-account .account-login:disabled{opacity:.55}
+.saved-xora-remove{border:1px solid #714052;border-radius:10px;background:#2b1722;color:#ffc6d5;padding:8px;font-size:10px}
+</style></head>
 <body><main class="app">
 <header class="top"><div class="brand">Xora <span>live</span></div><div class="actions"><button class="wallet" onclick="showWalletInfo()">XONA <span id="walletCoins">…</span></button><button class="iconbtn" aria-label="الرسائل" onclick="openInbox()">✉</button><button class="iconbtn" aria-label="الإشعارات" onclick="openNotifications()">♧</button><button id="ownerEntry" class="iconbtn owner-entry" aria-label="لوحة المالك" title="لوحة المالك" onclick="openOwnerPanel()">♛</button></div></header>
 <section class="hero"><div class="eyebrow">عالمك… على الهواء</div><h1>اكتشف عالماً مباشراً</h1><p>لحظات حية وتجارب تجمعنا في مكان واحد</p><div class="live-pill"><i class="dot"></i> <b id="liveCount">0</b> بث مباشر الآن</div></section>
@@ -792,7 +801,8 @@ html,body{
 <div class="account-head"><button class="back" onclick="closeScreen('accountScreen')">← الرئيسية</button><span class="account-kicker">XORA LIVE · MY SPACE</span></div>
 <div class="account-section" id="accountSessionActions">
  <div class="account-section-title"><b>إدارة الحساب</b><small>تبديل الحساب أو الخروج بأمان</small></div>
- <button type="button" class="account-login" onclick="switchXoraAccount()">⇄ تبديل الحساب</button>
+ <div id="savedXoraAccounts" class="saved-xora-accounts"><div class="account-upload-hint">جارٍ تحميل الحسابات المحفوظة…</div></div>
+ <button type="button" class="account-login" onclick="addXoraAccount()">＋ إضافة حساب آخر</button>
  <button type="button" class="account-login" style="border-color:#9b5365;color:#ffd5df" onclick="signOutXora()">↪ تسجيل الخروج</button>
 </div>
 <div class="account-hero"><img class="xora-cover account-cover" id="myCoverPreview" src="https://placehold.co/700x180/302139/e8c98b?text=Xora+Live" alt="غلاف الملف"><div class="account-identity"><div class="account-avatar-wrap"><img class="profile-avatar" id="myAvatar" src="https://placehold.co/120x120/211a2a/e8c98b?text=X" alt="الصورة"></div><div class="account-identity-copy"><div id="myOwnerBadge" class="xora-chip" style="display:none">👑 مالك التطبيق</div><h2 id="myDisplayName">ملفي الشخصي</h2><p id="myDisplayHandle">مساحتك وهويتك في Xora Live</p></div></div>
@@ -1238,7 +1248,7 @@ async function loadOnlineFriends(){if(!xoraUser)return;const root=document.getEl
 async function loadDiscover(){if(!xoraUser)return;const q=document.getElementById('discoverSearch').value.trim();let req=xoraSupabase.from('profiles').select('id,username,avatar_url,bio,level,badge,profile_badge,vip_until,last_seen,cover_url,xp').neq('id',xoraUser.id).order('created_at',{ascending:false}).limit(50);if(q)req=req.ilike('username','%'+q+'%');const {data,error}=await req;const root=document.getElementById('discoverList');root.innerHTML='';if(error){root.textContent=error.message;return}for(const u of data||[]){const row=document.createElement('div');row.innerHTML='<b></b><div></div><button>عرض الملف</button><button>رسالة</button>';row.querySelector('b').textContent=u.username;row.querySelector('div').textContent=(u.bio||'عضو في Xora live')+' · مستوى '+(u.level||1)+' · '+(u.badge||'عضو')+' · '+(u.last_seen&&Date.now()-new Date(u.last_seen).getTime()<120000?'🟢 متصل':'⚫ غير متصل')+(u.vip_until&&new Date(u.vip_until)>new Date()?' · VIP':'');row.querySelectorAll('button')[0].onclick=()=>openRealProfile(u);row.querySelectorAll('button')[1].onclick=()=>openThread(u);root.appendChild(row)}}
 async function openRealProfile(u){currentHost={name:u.username,img:u.avatar_url||'',bio:u.bio||'',profileId:u.id,streamKey:''};document.getElementById('profileImg').src=u.avatar_url||'https://placehold.co/120x120/211a2a/e8c98b?text=X';document.getElementById('profileName').textContent=u.username;document.getElementById('profileBio').textContent=u.bio||'';document.getElementById('profileCover').src=u.cover_url||'https://placehold.co/700x180/302139/e8c98b?text=Xora+Live';document.getElementById('profileLevelBadge').textContent='مستوى '+(u.level||1)+' · '+(u.badge||'عضو جديد')+(u.profile_badge?' · '+u.profile_badge:'')+(u.vip_until&&new Date(u.vip_until)>new Date()?' · VIP 💎':'');showScreen('profile');await loadProfileStats(u.id);await loadProfileContent(u.id,u);await updateFollowButton()}
 async function filterFollowStreams(silent=false){if(!xoraUser){openAuth();return}const {data,error}=await xoraSupabase.from('follows').select('following_id').eq('follower_id',xoraUser.id);if(error){toast(error.message);return}const ids=(data||[]).map(x=>x.following_id);const names=new Set(ids);let shown=0;document.querySelectorAll('#realLiveStreams .stream').forEach(card=>{const ok=ids.length>0&&names.has(card.dataset.hostId);card.style.display=ok?'block':'none';if(ok)shown++});const empty=document.getElementById('empty');if(empty)empty.style.display=shown?'none':'block';if(!shown&&!silent)toast('لا يوجد بث مباشر من الحسابات التي تتابعها حالياً')}
-async function openAccount(){if(!xoraUser){openAuth();return}await refreshXoraProfile();showScreen('accountScreen');await loadSavedShortCount();await refreshWalletBalance();document.getElementById('myOwnerBadge').style.display=xoraUser.id===XORA_OWNER_USER_ID?'inline-flex':'none';document.getElementById('myUsername').value=xoraProfile?.username||'';document.getElementById('myAvatarUrl').value=xoraProfile?.avatar_url||'';document.getElementById('myAvatar').src=xoraProfile?.avatar_url||'https://placehold.co/120x120/211a2a/e8c98b?text=X';document.getElementById('avatarUploadStatus').textContent='اختر صورة JPG أو PNG أو WEBP أو GIF (حتى 5 ميغابايت)';document.getElementById('myBio').value=xoraProfile?.bio||'';document.getElementById('myCoverUrl').value=xoraProfile?.cover_url||'';document.getElementById('myCoverPreview').src=xoraProfile?.cover_url||'https://placehold.co/700x180/302139/e8c98b?text=Xora+Live';document.getElementById('myAvatar').src=xoraProfile?.avatar_url||'https://placehold.co/120x120/211a2a/e8c98b?text=X';const f=await xoraSupabase.from('follows').select('*',{count:'exact',head:true}).eq('following_id',xoraUser.id);const g=await xoraSupabase.from('follows').select('*',{count:'exact',head:true}).eq('follower_id',xoraUser.id);document.getElementById('myDisplayName').textContent=xoraProfile?.username||'ملفي الشخصي';document.getElementById('myDisplayHandle').textContent='@'+(xoraProfile?.username||'xora_user')+' · حسابك في Xora Live';document.getElementById('accountStats').innerHTML='<div class="account-stat"><b>'+(f.count||0).toLocaleString('ar')+'</b><span>المتابعون</span><i>♧</i></div><div class="account-stat"><b>'+(g.count||0).toLocaleString('ar')+'</b><span>يتابع</span><i>♡</i></div><div class="account-stat"><b>'+(xoraProfile?.level||1).toLocaleString('ar')+'</b><span>المستوى</span><i>✦</i></div>';const xp=xoraProfile?.xp||0,level=xoraProfile?.level||1,progress=Math.min(100,Math.round((xp-(level-1)*(level-1)*100)/(Math.max(1,(level*level-(level-1)*(level-1))*100))*100));document.getElementById('myProgressCard').innerHTML='<b>المستوى '+level+' · '+(xoraProfile?.badge||'عضو جديد')+(xoraProfile?.profile_badge?' · '+xoraProfile.profile_badge:'')+'</b><div class="xora-level"><i style="width:'+progress+'%"></i></div><small class="xora-muted">'+xp.toLocaleString('ar')+' نقطة خبرة · '+(xoraProfile?.vip_until&&new Date(xoraProfile.vip_until)>new Date()?'عضوية VIP مفعلة':'عضوية عادية')+'</small>'}
+async function openAccount(){if(!xoraUser){openAuth();return}await saveCurrentXoraSession();await refreshXoraProfile();showScreen('accountScreen');renderSavedXoraAccounts();await loadSavedShortCount();await refreshWalletBalance();document.getElementById('myOwnerBadge').style.display=xoraUser.id===XORA_OWNER_USER_ID?'inline-flex':'none';document.getElementById('myUsername').value=xoraProfile?.username||'';document.getElementById('myAvatarUrl').value=xoraProfile?.avatar_url||'';document.getElementById('myAvatar').src=xoraProfile?.avatar_url||'https://placehold.co/120x120/211a2a/e8c98b?text=X';document.getElementById('avatarUploadStatus').textContent='اختر صورة JPG أو PNG أو WEBP أو GIF (حتى 5 ميغابايت)';document.getElementById('myBio').value=xoraProfile?.bio||'';document.getElementById('myCoverUrl').value=xoraProfile?.cover_url||'';document.getElementById('myCoverPreview').src=xoraProfile?.cover_url||'https://placehold.co/700x180/302139/e8c98b?text=Xora+Live';document.getElementById('myAvatar').src=xoraProfile?.avatar_url||'https://placehold.co/120x120/211a2a/e8c98b?text=X';const f=await xoraSupabase.from('follows').select('*',{count:'exact',head:true}).eq('following_id',xoraUser.id);const g=await xoraSupabase.from('follows').select('*',{count:'exact',head:true}).eq('follower_id',xoraUser.id);document.getElementById('myDisplayName').textContent=xoraProfile?.username||'ملفي الشخصي';document.getElementById('myDisplayHandle').textContent='@'+(xoraProfile?.username||'xora_user')+' · حسابك في Xora Live';document.getElementById('accountStats').innerHTML='<div class="account-stat"><b>'+(f.count||0).toLocaleString('ar')+'</b><span>المتابعون</span><i>♧</i></div><div class="account-stat"><b>'+(g.count||0).toLocaleString('ar')+'</b><span>يتابع</span><i>♡</i></div><div class="account-stat"><b>'+(xoraProfile?.level||1).toLocaleString('ar')+'</b><span>المستوى</span><i>✦</i></div>';const xp=xoraProfile?.xp||0,level=xoraProfile?.level||1,progress=Math.min(100,Math.round((xp-(level-1)*(level-1)*100)/(Math.max(1,(level*level-(level-1)*(level-1))*100))*100));document.getElementById('myProgressCard').innerHTML='<b>المستوى '+level+' · '+(xoraProfile?.badge||'عضو جديد')+(xoraProfile?.profile_badge?' · '+xoraProfile.profile_badge:'')+'</b><div class="xora-level"><i style="width:'+progress+'%"></i></div><small class="xora-muted">'+xp.toLocaleString('ar')+' نقطة خبرة · '+(xoraProfile?.vip_until&&new Date(xoraProfile.vip_until)>new Date()?'عضوية VIP مفعلة':'عضوية عادية')+'</small>'}
 
 async function uploadProfileAvatar(input){
  if(!xoraUser){toast('سجّل الدخول أولاً');input.value='';return}
@@ -1305,11 +1315,40 @@ const XORA_SUPABASE_URL='https://mcnvtsdbfoubtphdhayc.supabase.co';
 const XORA_SUPABASE_KEY='sb_publishable_i2xRgMPVtArG5viruh-egg_3Ou1R0Vb';
 const xoraSupabase=window.supabase.createClient(XORA_SUPABASE_URL,XORA_SUPABASE_KEY);
 let xoraUser=null,xoraProfile=null,xoraChatChannel=null;
-function openAuth(){document.getElementById('authPanel').classList.add('show');document.getElementById('authStatus').textContent=xoraUser?'أنت مسجل الدخول بالفعل.':''}
+const XORA_ACCOUNT_VAULT_KEY='xora-live-saved-accounts-v1';
+function readSavedXoraAccounts(){try{const value=JSON.parse(localStorage.getItem(XORA_ACCOUNT_VAULT_KEY)||'[]');return Array.isArray(value)?value.filter(x=>x&&x.user_id&&x.refresh_token):[]}catch(_){return []}}
+function writeSavedXoraAccounts(accounts){try{localStorage.setItem(XORA_ACCOUNT_VAULT_KEY,JSON.stringify(accounts.slice(0,10)));return true}catch(_){toast('تعذر حفظ الحسابات على هذا الجهاز');return false}}
+function rememberXoraSession(session,user=session?.user,label=''){
+ if(!session?.access_token||!session?.refresh_token||!user?.id)return;
+ const accounts=readSavedXoraAccounts(),name=label||xoraProfile?.username||user.user_metadata?.username||user.email||'حساب Xora';
+ const entry={user_id:user.id,email:user.email||'',label:name,access_token:session.access_token,refresh_token:session.refresh_token,expires_at:session.expires_at||null,updated_at:Date.now()};
+ const index=accounts.findIndex(x=>x.user_id===user.id);if(index>=0)accounts[index]=entry;else accounts.unshift(entry);
+ writeSavedXoraAccounts(accounts);
+}
+async function saveCurrentXoraSession(){try{const {data}=await xoraSupabase.auth.getSession();if(data?.session?.user)rememberXoraSession(data.session,data.session.user)}catch(_){}}
+function renderSavedXoraAccounts(){
+ const root=document.getElementById('savedXoraAccounts');if(!root)return;
+ const accounts=readSavedXoraAccounts();root.innerHTML='';
+ if(!accounts.length){const empty=document.createElement('div');empty.className='account-upload-hint';empty.textContent='ستظهر هنا الحسابات التي تسجل الدخول بها على هذا الجهاز.';root.append(empty);return}
+ accounts.forEach(account=>{
+  const row=document.createElement('div');row.className='saved-xora-account';
+  const info=document.createElement('div');info.className='saved-xora-account-info';
+  const name=document.createElement('b');name.textContent=account.label||account.email||'حساب Xora';
+  const email=document.createElement('small');email.textContent=account.email||'حساب محفوظ';
+  info.append(name,email);
+  const action=document.createElement('button');action.type='button';action.className='account-login';action.textContent=account.user_id===xoraUser?.id?'الحساب الحالي':'تبديل';
+  action.disabled=account.user_id===xoraUser?.id;action.onclick=()=>switchXoraAccount(account.user_id);
+  const remove=document.createElement('button');remove.type='button';remove.className='saved-xora-remove';remove.textContent='إزالة';remove.onclick=()=>removeSavedXoraAccount(account.user_id);
+  row.append(info,action,remove);root.append(row);
+ });
+}
+async function removeSavedXoraAccount(userId){if(userId===xoraUser?.id){toast('لا يمكن إزالة الحساب المفتوح. سجّل الخروج منه أولاً.');return}writeSavedXoraAccounts(readSavedXoraAccounts().filter(x=>x.user_id!==userId));renderSavedXoraAccounts();toast('تمت إزالة الحساب المحفوظ من هذا الجهاز')}
+function addXoraAccount(){if(xoraUser)saveCurrentXoraSession();document.getElementById('authEmail').value='';document.getElementById('authPassword').value='';document.getElementById('authUsername').value='';document.getElementById('authTitle').textContent='إضافة حساب آخر';document.getElementById('authStatus').textContent='أدخل بيانات الحساب الآخر. سيبقى حسابك الحالي محفوظاً ويمكنك الرجوع إليه.';document.getElementById('authPanel').classList.add('show')}
+function openAuth(){document.getElementById('authPanel').classList.add('show');document.getElementById('authStatus').textContent=xoraUser?'يمكنك إضافة حساب آخر دون فقدان الحساب الحالي.':''}
 function closeAuth(){document.getElementById('authPanel').classList.remove('show')}
 function authMessage(t){document.getElementById('authStatus').textContent=t}
-async function signUpXora(){const email=document.getElementById('authEmail').value.trim(),password=document.getElementById('authPassword').value,username=document.getElementById('authUsername').value.trim();if(!email||password.length<6||username.length<3){authMessage('أدخل بريداً صحيحاً وكلمة مرور من 6 أحرف واسم مستخدم من 3 أحرف على الأقل.');return}authMessage('جارٍ إنشاء الحساب…');const emailRedirectTo=new URL('home.html',location.href).href;const {data,error}=await xoraSupabase.auth.signUp({email,password,options:{data:{username},emailRedirectTo}});if(error){authMessage(error.message);return}if(data.session){xoraUser=data.user;await refreshXoraProfile();await refreshWalletBalance();closeAuth();toast('تم إنشاء الحساب وتسجيل الدخول');if(document.getElementById('groupChat').classList.contains('show')){loadChatMessages();subscribeChat()}}else authMessage('تم إنشاء الحساب. تحقق من بريدك الإلكتروني لتأكيده ثم سجّل الدخول.')}
-async function signInXora(){const email=document.getElementById('authEmail').value.trim(),password=document.getElementById('authPassword').value;if(!email||!password){authMessage('أدخل البريد وكلمة المرور.');return}authMessage('جارٍ تسجيل الدخول…');const {data,error}=await xoraSupabase.auth.signInWithPassword({email,password});if(error){authMessage(error.message);return}xoraUser=data.user;await refreshXoraProfile();await refreshWalletBalance();closeAuth();toast('مرحباً بعودتك '+(xoraProfile?.username||''));if(document.getElementById('groupChat').classList.contains('show')){loadChatMessages();subscribeChat()}}
+async function signUpXora(){const email=document.getElementById('authEmail').value.trim(),password=document.getElementById('authPassword').value,username=document.getElementById('authUsername').value.trim();if(!email||password.length<6||username.length<3){authMessage('أدخل بريداً صحيحاً وكلمة مرور من 6 أحرف واسم مستخدم من 3 أحرف على الأقل.');return}await saveCurrentXoraSession();authMessage('جارٍ إنشاء الحساب…');const emailRedirectTo=new URL('home.html',location.href).href;const {data,error}=await xoraSupabase.auth.signUp({email,password,options:{data:{username},emailRedirectTo}});if(error){authMessage(error.message);return}if(data.session){xoraUser=data.user;await refreshXoraProfile();rememberXoraSession(data.session,data.user);await refreshWalletBalance();closeAuth();renderSavedXoraAccounts();toast('تم إنشاء الحساب وتسجيل الدخول');if(document.getElementById('groupChat').classList.contains('show')){loadChatMessages();subscribeChat()}}else authMessage('تم إنشاء الحساب. تحقق من بريدك الإلكتروني لتأكيده ثم سجّل الدخول.')}
+async function signInXora(){const email=document.getElementById('authEmail').value.trim(),password=document.getElementById('authPassword').value;if(!email||!password){authMessage('أدخل البريد وكلمة المرور.');return}await saveCurrentXoraSession();authMessage('جارٍ تسجيل الدخول…');const {data,error}=await xoraSupabase.auth.signInWithPassword({email,password});if(error){authMessage(error.message);return}xoraUser=data.user;await refreshXoraProfile();rememberXoraSession(data.session,data.user);await refreshWalletBalance();closeAuth();renderSavedXoraAccounts();toast('مرحباً بعودتك '+(xoraProfile?.username||''));if(document.getElementById('groupChat').classList.contains('show')){loadChatMessages();subscribeChat()}}
 async function signOutXora(mode='logout'){
  if(!xoraUser)return;
  if(!confirm(mode==='switch'?'سيتم تسجيل الخروج لتتمكن من الدخول بحساب آخر. هل تريد المتابعة؟':'هل تريد تسجيل الخروج من Xora Live؟'))return;
@@ -1318,8 +1357,10 @@ async function signOutXora(mode='logout'){
   if(activeVoiceMeeting?.leave){try{await activeVoiceMeeting.leave()}catch(_){}}
   activeVoiceMeeting=null;activeVoiceRoom=null;
   stopCameraPreview?.();
-  const {error}=await xoraSupabase.auth.signOut();
+  const activeId=xoraUser.id;
+  const {error}=await xoraSupabase.auth.signOut({scope:'local'});
   if(error)throw error;
+  writeSavedXoraAccounts(readSavedXoraAccounts().filter(x=>x.user_id!==activeId));
   xoraUser=null;xoraProfile=null;
   xoraChatChannel=null;dmChannel=null;voiceRoomChatChannel=null;voiceRoomsChannel=null;voiceSeatsChannel=null;
   await xoraSupabase.removeAllChannels();
@@ -1334,7 +1375,30 @@ async function signOutXora(mode='logout'){
   document.getElementById('authPanel').classList.add('show');
  }catch(e){authMessage('تعذر تسجيل الخروج: '+(e.message||e))}
 }
-async function switchXoraAccount(){await signOutXora('switch')}
+async function switchXoraAccount(userId){
+ if(!userId){await saveCurrentXoraSession();renderSavedXoraAccounts();showScreen('accountScreen');return}
+ if(userId===xoraUser?.id)return;
+ const target=readSavedXoraAccounts().find(x=>x.user_id===userId);
+ if(!target?.refresh_token){toast('بيانات هذا الحساب غير متاحة. أضفه من جديد.');return}
+ await saveCurrentXoraSession();
+ try{
+  if(activeVoiceRoom?.id){try{await xoraSupabase.rpc('leave_voice_seat',{p_room_id:activeVoiceRoom.id})}catch(_){}}
+  if(activeVoiceMeeting?.leave){try{await activeVoiceMeeting.leave()}catch(_){}}
+  activeVoiceMeeting=null;activeVoiceRoom=null;activeMeeting=null;activeLiveStream=null;activeLiveRole=null;
+  stopCameraPreview?.();
+  await xoraSupabase.removeAllChannels();
+  xoraChatChannel=null;dmChannel=null;voiceRoomChatChannel=null;voiceRoomsChannel=null;voiceSeatsChannel=null;noticeChannel=null;competitionChannel=null;liveGuestChannel=null;liveRoomReactionsChannel=null;liveRoomCommentsChannel=null;textRoomChannel=null;textRoomsListChannel=null;xoraStreamsChannel=null;
+  const {data,error}=await xoraSupabase.auth.setSession({access_token:target.access_token,refresh_token:target.refresh_token});
+  if(error)throw error;
+  if(!data?.session?.user)throw new Error('لم يتم استرجاع جلسة الحساب');
+  xoraUser=data.session.user;xoraProfile=null;
+  await refreshXoraProfile();rememberXoraSession(data.session,data.session.user);await refreshWalletBalance();await checkOwnerAccess();
+  if(typeof refreshMyAppRole==='function')await refreshMyAppRole();
+  await xoraSupabase.rpc('update_my_presence');ensureDmChannel();await ensureNotificationChannel();
+  document.querySelectorAll('.screen').forEach(x=>x.classList.remove('show'));document.body.style.overflow='';
+  renderSavedXoraAccounts();toast('تم التبديل إلى '+(xoraProfile?.username||data.session.user.email||'الحساب الآخر'));
+ }catch(error){toast('تعذر التبديل إلى الحساب: '+(error.message||'خطأ غير معروف'))}
+}
 async function refreshXoraProfile(){if(!xoraUser)return;let {data,error}=await xoraSupabase.from('profiles').select('*').eq('id',xoraUser.id).maybeSingle();if(error){authMessage(error.message);return}if(!data){const fallback='user_'+xoraUser.id.slice(0,8);const username=xoraUser.user_metadata?.username||fallback;const ins=await xoraSupabase.from('profiles').insert({id:xoraUser.id,username}).select().single();data=ins.data;if(ins.error){authMessage(ins.error.message);return}}xoraProfile=data;}
 async function openAccount(){if(!xoraUser){openAuth();return}await refreshXoraProfile();showScreen('accountScreen');document.getElementById('myUsername').value=xoraProfile?.username||'';document.getElementById('myAvatarUrl').value=xoraProfile?.avatar_url||'';document.getElementById('myCoverUrl').value=xoraProfile?.cover_url||'';document.getElementById('myBio').value=xoraProfile?.bio||'';document.getElementById('myAvatar').src=xoraProfile?.avatar_url||'https://placehold.co/120x120/211a2a/e8c98b?text=X';document.getElementById('myCoverPreview').src=xoraProfile?.cover_url||'https://placehold.co/700x180/302139/e8c98b?text=Xora+Live';const f=await xoraSupabase.from('follows').select('*',{count:'exact',head:true}).eq('following_id',xoraUser.id);const g=await xoraSupabase.from('follows').select('*',{count:'exact',head:true}).eq('follower_id',xoraUser.id);document.getElementById('accountStats').textContent='المتابعون: '+(f.count||0)+' · تتابع: '+(g.count||0);const isOwner=xoraUser.id===XORA_OWNER_USER_ID,xp=xoraProfile?.xp||0,level=xoraProfile?.level||1,progress=Math.min(100,Math.round((xp-(level-1)*(level-1)*100)/Math.max(1,(2*level-1)*100)*100));document.getElementById('myProgressCard').innerHTML=isOwner?'<b>👑 مالك التطبيق · المستوى الأعلى</b><div class="xora-level"><i style="width:100%"></i></div><small class="xora-muted">حساب المالك محمي وله أولوية كاملة</small>':'<b>المستوى '+level+' · '+(xoraProfile?.badge||'عضو جديد')+'</b><div class="xora-level"><i style="width:'+progress+'%"></i></div><small class="xora-muted">'+xp.toLocaleString('ar')+' نقطة خبرة · '+(xoraProfile?.vip_until&&new Date(xoraProfile.vip_until)>new Date()?'عضوية VIP مفعلة':'عضوية عادية')+'</small>'}
 async function loadChatMessages(){const log=document.getElementById('groupChatLog');log.innerHTML='';const {data,error}=await xoraSupabase.from('chat_messages').select('id,user_id,content,created_at').order('created_at',{ascending:true}).limit(100);if(error){document.getElementById('chatNote').textContent='تعذر تحميل الرسائل: '+error.message;return}const ids=[...new Set((data||[]).map(m=>m.user_id))];let names={};if(ids.length){const p=await xoraSupabase.from('profiles').select('id,username').in('id',ids);(p.data||[]).forEach(v=>names[v.id]=v.username)}(data||[]).forEach(m=>appendGroupMessage(names[m.user_id]||'مستخدم',m.content,m.user_id===xoraUser?.id,m.id,m.user_id));}
@@ -1503,6 +1567,7 @@ async function bootXoraAuthenticatedApp(){
     }
     xoraUser=data.session.user;
     await refreshXoraProfile();
+    rememberXoraSession(data.session,data.session.user);renderSavedXoraAccounts();
     await refreshWalletBalance();
     await checkOwnerAccess();
     // Some older bundles do not define refreshMyAppRole; never let an optional
@@ -1526,9 +1591,9 @@ async function bootXoraAuthenticatedApp(){
 }
 bootXoraAuthenticatedApp();
 xoraSupabase.auth.onAuthStateChange(async(event,session)=>{
-  if(event==='SIGNED_OUT'||!session?.user){xoraUser=null;xoraProfile=null;document.documentElement.classList.remove('xora-auth-check');document.getElementById('authPanel')?.classList.add('show');return;}
+  if(event==='SIGNED_OUT'||!session?.user){xoraUser=null;xoraProfile=null;document.documentElement.classList.remove('xora-auth-check');document.getElementById('authPanel')?.classList.add('show');renderSavedXoraAccounts();return;}
   xoraUser=session.user;
-  if(event==='SIGNED_IN'||event==='TOKEN_REFRESHED'){await refreshXoraProfile();await checkOwnerAccess();await refreshMyAppRole();await xoraSupabase.rpc('update_my_presence');}
+  if(event==='SIGNED_IN'||event==='TOKEN_REFRESHED'){rememberXoraSession(session,session.user);await refreshXoraProfile();rememberXoraSession(session,session.user);await checkOwnerAccess();if(typeof refreshMyAppRole==='function')await refreshMyAppRole();await xoraSupabase.rpc('update_my_presence');renderSavedXoraAccounts();}
 });
 </script>
 
