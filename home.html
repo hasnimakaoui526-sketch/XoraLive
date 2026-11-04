@@ -1938,9 +1938,8 @@ async function loadShortVideos(){
       const send=document.createElement('button');send.type='submit';send.textContent='إرسال';send.disabled=!xoraUser;
       form.append(input,send);form.onsubmit=e=>{e.preventDefault();postShortVideoComment(v.id,input,send,commentCount,commentList)};
       commentArea.append(commentTitle,commentList,form);
-      meta.append(commentArea);
+      meta.append(actions,commentArea);
     }
-    meta.append(actions);
     card.append(wrap,meta);feed.appendChild(card);
   }
   root.appendChild(feed);
