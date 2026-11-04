@@ -1958,7 +1958,8 @@ async function loadShortVideos(){
     {id:'xora-demo-short-17',user_id:'demo-nour',video_url:'https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/360/Big_Buck_Bunny_360_10s_1MB.mp4',caption:'رسوم متحركة ومواقف مضحكة 😄',created_at:new Date(Date.now()-1020000).toISOString(),demo:true,demoName:'Nour_Smile',demoAvatar:'https://placehold.co/96x96/76516c/ffffff?text=N'},
     {id:'xora-demo-short-18',user_id:'demo-fares',video_url:'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',caption:'جمال الطبيعة بتفاصيلها 🌼',created_at:new Date(Date.now()-1080000).toISOString(),demo:true,demoName:'Fares_Nature',demoAvatar:'https://placehold.co/96x96/4e6949/ffffff?text=F'}
   ];
-  const videos=[...demoVideos,...(realVideos||[])];
+  const videos=[...(realVideos||[])];
+  if(!videos.length){root.innerHTML='<div class="shorts-empty">لا توجد فيديوهات منشورة حالياً. انشر أول فيديو لتظهر معه أزرار الإعجاب والتعليقات والحفظ.</div>';return}
   const realVideoIds=(realVideos||[]).map(v=>v.id),userIds=[...new Set((realVideos||[]).map(v=>v.user_id))];
   let profilesResult={data:[],error:null},likesResult={data:[],error:null},commentsResult={data:[],error:null},savedResult={data:[],error:null};
   if(realVideoIds.length){
