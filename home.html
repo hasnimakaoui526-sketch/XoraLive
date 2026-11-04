@@ -2105,3 +2105,11 @@ async function backToTextRooms(){if(textRoomChannel){await xoraSupabase.removeCh
   text-shadow:0 1px 3px #000,0 0 5px #000!important;
 }
 </style>
+
+
+<style id="xora-fix-shorts-header-overlap">
+/* Keep the publish action below the title row so it never covers the heading. */
+#shortVideosScreen .shorts-open-publish{position:relative!important;top:auto!important;right:auto!important;left:auto!important;align-self:flex-end!important;flex:0 0 auto!important;margin:4px 12px 8px!important;z-index:8!important;display:block!important;}
+#shortVideosScreen .shorts-head{position:relative!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:8px!important;box-sizing:border-box!important;}
+#shortVideosScreen .shorts-head>strong{min-width:0!important;flex:1 1 auto!important;text-align:center!important;white-space:nowrap!important;}
+</style>
