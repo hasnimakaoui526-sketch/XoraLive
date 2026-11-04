@@ -956,7 +956,7 @@ async function loadProfileContent(id,p){
  const seen=p.last_seen?new Date(p.last_seen).getTime():0,online=seen>0&&(Date.now()-seen)<120000;
  presence.textContent=online?'🟢 نشط الآن':'⚫ غير نشط حالياً'+(seen?' · آخر ظهور '+new Date(seen).toLocaleString('ar'):' · لا يتوفر وقت آخر ظهور');
  const [v,s]=await Promise.all([
-  xoraSupabase.from('short_videos').select('id,video_url,caption,created_at').eq('user_id',id).order('created_at',{ascending:false}).limit(30),
+  xoraSupabase.from('short_videos').select('id,video_url,caption,created_at,is_hidden').eq('user_id',id).eq('is_hidden',false).order('created_at',{ascending:false}).limit(30),
   xoraSupabase.from('streams').select('id,title,status,started_at,ended_at').eq('host_user_id',id).order('started_at',{ascending:false}).limit(20)
  ]);
  videosRoot.innerHTML='';
@@ -1826,7 +1826,7 @@ async function publishShortVideo(){
 async function loadShortVideos(){
   const root=document.getElementById('shortVideosFeed');if(!root)return;
   root.innerHTML='<div class="shorts-loading">جارٍ تحميل الفيديوهات…</div>';
-  const {data:realVideos,error}=await xoraSupabase.from('short_videos').select('id,user_id,video_url,caption,created_at').order('created_at',{ascending:false}).limit(40);
+  const {data:realVideos,error}=await xoraSupabase.from('short_videos').select('id,user_id,video_url,caption,created_at,is_hidden').eq('is_hidden',false).order('created_at',{ascending:false}).limit(40);
   if(error){root.textContent='تعذر تحميل الفيديوهات: '+error.message;return}
   const demoVideos=[
     {id:'xora-demo-short-1',user_id:'demo-lina',video_url:'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',caption:'لحظة هادئة من الطبيعة 🌸',created_at:new Date(Date.now()-60000).toISOString(),demo:true,demoName:'Lina_Moments',demoAvatar:'https://placehold.co/96x96/5b315f/ffffff?text=L'},
@@ -1964,7 +1964,7 @@ async function loadSavedShortVideos(){
   const ids=(saved.data||[]).map(x=>x.video_id);window.xoraSavedShortIds=new Set(ids);
   const countNode=document.getElementById('savedShortCount');if(countNode)countNode.textContent=String(ids.length);
   if(!ids.length){root.innerHTML='<div class="shorts-empty">لم تحفظ أي فيديو بعد. اضغط 🔖 حفظ أسفل الفيديوهات لإضافتها هنا.</div>';return}
-  const result=await xoraSupabase.from('short_videos').select('id,user_id,video_url,caption,created_at').in('id',ids);
+  const result=await xoraSupabase.from('short_videos').select('id,user_id,video_url,caption,created_at,is_hidden').eq('is_hidden',false).in('id',ids);
   if(result.error){root.textContent='تعذر تحميل الفيديوهات: '+result.error.message;return}
   const userIds=[...new Set((result.data||[]).map(v=>v.user_id))];
   const profiles=userIds.length?await xoraSupabase.from('profiles').select('id,username,avatar_url').in('id',userIds):{data:[],error:null};
