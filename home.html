@@ -1587,7 +1587,7 @@ body.xora-owner #ownerStockImportBar{display:flex}
 #shortVideosScreen .shorts-video-wrap{position:absolute;inset:0;display:block;background:#050407}
 #shortVideosScreen .shorts-card video{width:100%;height:100%;max-height:none;aspect-ratio:auto;object-fit:contain;background:#050407}
 #shortVideosScreen .shorts-meta{position:absolute;z-index:2;left:0;right:0;bottom:0;padding:60px 14px calc(env(safe-area-inset-bottom) + 14px);background:linear-gradient(0deg,#050407f2 0%,#050407a8 48%,transparent 100%);pointer-events:none}
-#shortVideosScreen .shorts-meta{max-height:78dvh;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
+#shortVideosScreen .shorts-meta{max-height:82dvh;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;display:flex;flex-direction:column;gap:5px;padding-top:12px}
 #shortVideosScreen .shorts-meta::-webkit-scrollbar{width:3px}
 #shortVideosScreen .shorts-comments{display:block!important;visibility:visible!important;opacity:1!important}
 #shortVideosScreen .shorts-comment-form{display:flex!important;visibility:visible!important;opacity:1!important}
@@ -1916,7 +1916,6 @@ async function loadShortVideos(){
     if(!v.demo&&xoraUser&&v.user_id===xoraUser.id){const del=document.createElement('button');del.className='shorts-delete';del.textContent='حذف الفيديو';del.onclick=()=>deleteShortVideo(v.id,v.video_url);author.appendChild(del)}
     const caption=document.createElement('div');caption.className='shorts-caption';caption.textContent=v.caption||'';
     const date=document.createElement('div');date.className='shorts-date';date.textContent=new Date(v.created_at).toLocaleString('ar');
-    meta.append(author,caption,date);
     const actions=document.createElement('div');actions.className='shorts-social-actions';
     if(!v.demo){
       const saveBtn=document.createElement('button');saveBtn.type='button';saveBtn.className='shorts-save';const isSaved=(window.xoraSavedShortIds||new Set()).has(v.id);saveBtn.textContent=isSaved?'🔖 محفوظ':'🔖 حفظ';saveBtn.classList.toggle('is-saved',isSaved);saveBtn.onclick=()=>toggleShortVideoSave(v.id,saveBtn);actions.appendChild(saveBtn);
@@ -1944,6 +1943,7 @@ async function loadShortVideos(){
       commentArea.append(commentTitle,commentList,form);
       meta.append(actions,commentArea);
     }
+    meta.append(author,caption,date);
     card.append(wrap,meta);feed.appendChild(card);
   }
   root.appendChild(feed);
