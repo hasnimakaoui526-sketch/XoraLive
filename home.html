@@ -1999,8 +1999,9 @@ async function deleteShortVideoComment(commentId,videoId){
   if(error){toast('تعذر حذف التعليق: '+error.message);return}
   await loadShortVideos();
 }
+function confirmShortVideoDelete(){return new Promise(resolve=>{const overlay=document.createElement('div');overlay.className='short-delete-confirm-overlay';const panel=document.createElement('div');panel.className='short-delete-confirm-panel';const del=document.createElement('button');del.type='button';del.textContent='حذف';del.className='short-delete-confirm-action danger';const cancel=document.createElement('button');cancel.type='button';cancel.textContent='إلغاء';cancel.className='short-delete-confirm-action';const finish=value=>{overlay.remove();resolve(value)};del.onclick=()=>finish(true);cancel.onclick=()=>finish(false);overlay.addEventListener('click',e=>{if(e.target===overlay)finish(false)});panel.append(del,cancel);overlay.append(panel);document.body.append(overlay)})}
 async function deleteShortVideo(id,url){
-  if(!xoraUser||!confirm('هل تريد حذف هذا الفيديو نهائياً؟'))return;
+  if(!xoraUser||!await confirmShortVideoDelete())return;
   const {error}=await xoraSupabase.from('short_videos').delete().eq('id',id).eq('user_id',xoraUser.id);
   if(error){alert('تعذر حذف الفيديو: '+error.message);return}
   const marker='/storage/v1/object/public/xora-short-videos/';
@@ -2123,4 +2124,11 @@ async function backToTextRooms(){if(textRoomChannel){await xoraSupabase.removeCh
 #shortVideosScreen .shorts-video-wrap video{display:block!important;position:relative;z-index:1;pointer-events:auto;}
 #shortVideosScreen .shorts-video-wrap video::-webkit-media-controls{opacity:1!important;}
 #shortVideosScreen .shorts-playback-error{position:absolute;z-index:4;left:12px;right:12px;top:50%;transform:translateY(-50%);padding:14px;border:1px solid #9a6b80;border-radius:13px;background:#170d18ed;color:#ffe1e8;text-align:center;font-size:13px;}
+</style>
+
+<style id="xora-short-delete-confirm-style">
+.short-delete-confirm-overlay{position:fixed;inset:0;z-index:999999;display:flex;align-items:center;justify-content:center;padding:22px;background:#000b;backdrop-filter:blur(5px)}
+.short-delete-confirm-panel{width:min(280px,90vw);display:flex;gap:12px;padding:16px;background:#17121d;border:1px solid #80618b;border-radius:18px;box-shadow:0 18px 55px #000b}
+.short-delete-confirm-action{flex:1;min-height:46px;border:1px solid #80618b;border-radius:12px;background:#302338;color:#f5e9f2;font-size:16px;font-weight:700}
+.short-delete-confirm-action.danger{background:linear-gradient(135deg,#a52d52,#6e1736);border-color:#d36a8a;color:#fff}
 </style>
