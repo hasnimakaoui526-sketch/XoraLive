@@ -825,8 +825,8 @@ html,body{
 <button onclick="openDiscover()"><span>👥</span>الأصدقاء</button>
 </div>
 <section id="homeOnlineSection" class="home-online-section">
- <div class="home-online-head"><div><h2>🟢 المتواجدون الآن</h2><small><b id="homeOnlineCount">0</b> مستخدم متصل داخل Xora</small></div><button type="button" onclick="loadHomeOnlineUsers()">↻ تحديث</button></div>
- <div class="home-online-search"><span>⌕</span><input id="homeOnlineSearch" type="search" placeholder="ابحث عن مستخدم متصل بالاسم…" oninput="filterHomeOnlineUsers()"></div>
+ <div class="home-online-head"><div><h2>👥 جميع المستخدمين</h2><small><b id="homeOnlineCount">0</b> حساب في Xora</small></div><button type="button" onclick="loadHomeOnlineUsers()">↻ تحديث</button></div>
+ <div class="home-online-search"><span>⌕</span><input id="homeOnlineSearch" type="search" placeholder="ابحث عن أي مستخدم بالاسم…" oninput="filterHomeOnlineUsers()"></div>
  <div id="homeOnlineUsers" class="home-online-users"><div class="xora-muted">جارٍ تحميل المتواجدين…</div></div>
 </section>
 <div class="search"><span>⌕</span><input id="search" placeholder="ابحث عن بث أو مذيع…" oninput="filterStreams()"><span>⚙</span></div>
@@ -1296,26 +1296,38 @@ async function loadRealFeaturedHosts(){const root=document.getElementById('realF
 let xoraHomeOnlineUsers=[];
 async function loadHomeOnlineUsers(){
  const root=document.getElementById('homeOnlineUsers');if(!root||!xoraUser)return;
- root.innerHTML='<div class="home-online-empty">جارٍ تحديث قائمة المتواجدين…</div>';
- const since=new Date(Date.now()-120000).toISOString();
- const {data,error}=await xoraSupabase.from('profiles').select('id,username,avatar_url,bio,level,badge,profile_badge,vip_until,last_seen,cover_url').gte('last_seen',since).order('last_seen',{ascending:false}).limit(80);
- if(error){root.innerHTML='<div class="home-online-empty">تعذر تحميل المتواجدين حالياً.</div>';return}
- xoraHomeOnlineUsers=(data||[]).filter(u=>u.last_seen&&Date.now()-new Date(u.last_seen).getTime()<120000);
- const count=document.getElementById('homeOnlineCount');if(count)count.textContent=xoraHomeOnlineUsers.length.toLocaleString('ar');
- filterHomeOnlineUsers();
+ root.innerHTML='<div class="home-online-empty">جارٍ تحميل المستخدمين…</div>';
+ const fields='id,username,avatar_url,bio,level,badge,profile_badge,vip_until,last_seen,cover_url';
+ const all=[];let from=0,batchSize=500;
+ try{
+  while(true){
+   const {data,error}=await xoraSupabase.from('profiles').select(fields).order('username',{ascending:true}).range(from,from+batchSize-1);
+   if(error)throw error;
+   all.push(...(data||[]));
+   if(!data||data.length<batchSize)break;
+   from+=batchSize;
+  }
+  xoraHomeOnlineUsers=all;
+  const count=document.getElementById('homeOnlineCount');if(count)count.textContent=all.length.toLocaleString('ar');
+  filterHomeOnlineUsers();
+ }catch(error){
+  console.error('Could not load Xora users directory:',error);
+  root.innerHTML='<div class="home-online-empty">تعذر تحميل قائمة المستخدمين حالياً.</div>';
+ }
 }
 function filterHomeOnlineUsers(){
  const root=document.getElementById('homeOnlineUsers');if(!root)return;
  const q=(document.getElementById('homeOnlineSearch')?.value||'').trim().toLocaleLowerCase();
  const users=xoraHomeOnlineUsers.filter(u=>(u.username||'مستخدم').toLocaleLowerCase().includes(q));
  root.innerHTML='';
- if(!users.length){root.innerHTML='<div class="home-online-empty">'+(q?'لا يوجد مستخدم متصل بهذا الاسم.':'لا يوجد مستخدمون متصلون الآن.')+'</div>';return}
+ if(!users.length){root.innerHTML='<div class="home-online-empty">'+(q?'لا يوجد مستخدم بهذا الاسم.':'لا يوجد مستخدمون مسجلون بعد.')+'</div>';return}
  users.forEach(u=>{
   const card=document.createElement('button');card.type='button';card.className='home-online-user';
   const img=document.createElement('img');img.src=u.avatar_url||'https://placehold.co/100x100/211a2a/e8c98b?text=X';img.alt='';
   const copy=document.createElement('span');copy.className='home-online-user-copy';
   const name=document.createElement('b');name.textContent=u.username||'مستخدم';
-  const status=document.createElement('small');status.textContent='متصل الآن · مستوى '+(u.level||1);
+  const isOnline=!!(u.last_seen&&Date.now()-new Date(u.last_seen).getTime()<120000);
+  const status=document.createElement('small');status.textContent=isOnline?'متصل الآن':'عضو في Xora';if(!isOnline)status.style.color='#b8aebe';
   copy.append(name,status);card.append(img,copy);
   if(u.profile_badge||u.vip_until&&new Date(u.vip_until)>new Date()){const vip=document.createElement('span');vip.textContent='✦';vip.style.color='#e8c98b';card.append(vip)}
   card.addEventListener('click',()=>openRealProfile(u));root.append(card);
