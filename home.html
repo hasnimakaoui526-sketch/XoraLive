@@ -824,6 +824,11 @@ html,body{
 <button onclick="openVoiceRooms()"><span>🎙️</span>غرف صوتية</button>
 <button onclick="openDiscover()"><span>👥</span>الأصدقاء</button>
 </div>
+<section id="homeOnlineSection" class="home-online-section">
+ <div class="home-online-head"><div><h2>🟢 المتواجدون الآن</h2><small><b id="homeOnlineCount">0</b> مستخدم متصل داخل Xora</small></div><button type="button" onclick="loadHomeOnlineUsers()">↻ تحديث</button></div>
+ <div class="home-online-search"><span>⌕</span><input id="homeOnlineSearch" type="search" placeholder="ابحث عن مستخدم متصل بالاسم…" oninput="filterHomeOnlineUsers()"></div>
+ <div id="homeOnlineUsers" class="home-online-users"><div class="xora-muted">جارٍ تحميل المتواجدين…</div></div>
+</section>
 <div class="search"><span>⌕</span><input id="search" placeholder="ابحث عن بث أو مذيع…" oninput="filterStreams()"><span>⚙</span></div>
 <nav class="tabs" id="tabs"><button class="active" data-filter="all">كل البثوث</button><button data-filter="follow">المتابعون</button></nav>
 <div class="section-head"><h2>مذيعون مميزون</h2><span class="more">حسب شارة التميّز الحقيقية</span></div>
@@ -1654,6 +1659,8 @@ async function bootXoraAuthenticatedApp(){
     await ensureNotificationChannel();
     if(!window.xoraPresenceTimer)window.xoraPresenceTimer=setInterval(()=>{if(xoraUser)xoraSupabase.rpc('update_my_presence')},60000);
     await loadLiveStreams();
+     await loadHomeOnlineUsers();
+     if(!window.xoraHomeOnlineTimer)window.xoraHomeOnlineTimer=setInterval(()=>{if(xoraUser&&document.getElementById('homeOnlineSection'))loadHomeOnlineUsers()},30000);
     if(!xoraStreamsChannel){xoraStreamsChannel=xoraSupabase.channel('xora-live-streams').on('postgres_changes',{event:'*',schema:'public',table:'streams'},()=>loadLiveStreams()).subscribe();}
     if(!window.xoraLiveListRefreshTimer){window.xoraLiveListRefreshTimer=setInterval(()=>{const home=document.getElementById('home');if(xoraUser&&document.getElementById('realLiveStreams')&&(!home||home.classList.contains('show')))loadLiveStreams()},12000)}
   } catch(error) {
