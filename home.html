@@ -732,7 +732,16 @@ html,body{
 
 </style>
 <style id="xora-owner-only-voice-room-create">body:not(.xora-owner) #voiceRoomCreatePanel{display:none!important}</style>
-\n<style id="xora-live-gift-showcase">\n#liveGiftShowcase{display:none;position:absolute;z-index:45;top:31%;left:50%;width:min(82%,340px);transform:translateX(-50%);pointer-events:none;text-align:center}\n#liveGiftShowcase.show{display:block;animation:xoraGiftShowcase 3s cubic-bezier(.2,.8,.2,1) both}\n.live-gift-showcase-card{padding:18px 20px 16px;border-radius:24px;border:1px solid rgba(255,220,150,.8);background:linear-gradient(145deg,rgba(58,28,69,.96),rgba(19,13,31,.96));box-shadow:0 0 0 1px rgba(255,255,255,.08) inset,0 12px 45px rgba(0,0,0,.55),0 0 38px rgba(224,156,255,.32);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}\n.live-gift-showcase-emoji{font-size:clamp(58px,17vw,86px);line-height:1.15;filter:drop-shadow(0 5px 16px rgba(255,203,112,.65))}\n.live-gift-showcase-name{margin-top:7px;color:#ffe3a3;font-size:18px;font-weight:950;text-shadow:0 2px 12px #e5a84c88}\n.live-gift-showcase-sender{margin-top:7px;color:#fff;font-size:13px;font-weight:800}\n@keyframes xoraGiftShowcase{0%{opacity:0;transform:translate(-50%,24px) scale(.55)}12%{opacity:1;transform:translate(-50%,0) scale(1.06)}22%,78%{opacity:1;transform:translate(-50%,0) scale(1)}100%{opacity:0;transform:translate(-50%,-18px) scale(.92)}}\n</style>\n
+
+<style id="xora-live-gift-showcase">
+#liveGiftShowcase{display:none;position:absolute;z-index:45;top:31%;left:50%;width:min(82%,340px);transform:translateX(-50%);pointer-events:none;text-align:center}
+#liveGiftShowcase.show{display:block;animation:xoraGiftShowcase 3s cubic-bezier(.2,.8,.2,1) both}
+.live-gift-showcase-card{padding:18px 20px 16px;border-radius:24px;border:1px solid rgba(255,220,150,.8);background:linear-gradient(145deg,rgba(58,28,69,.96),rgba(19,13,31,.96));box-shadow:0 0 0 1px rgba(255,255,255,.08) inset,0 12px 45px rgba(0,0,0,.55),0 0 38px rgba(224,156,255,.32);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.live-gift-showcase-emoji{font-size:clamp(58px,17vw,86px);line-height:1.15;filter:drop-shadow(0 5px 16px rgba(255,203,112,.65))}
+.live-gift-showcase-name{margin-top:7px;color:#ffe3a3;font-size:18px;font-weight:950;text-shadow:0 2px 12px #e5a84c88}
+.live-gift-showcase-sender{margin-top:7px;color:#fff;font-size:13px;font-weight:800}
+@keyframes xoraGiftShowcase{0%{opacity:0;transform:translate(-50%,24px) scale(.55)}12%{opacity:1;transform:translate(-50%,0) scale(1.06)}22%,78%{opacity:1;transform:translate(-50%,0) scale(1)}100%{opacity:0;transform:translate(-50%,-18px) scale(.92)}}
+</style>\n
 <style id="xora-seats-only-inside-open-voice-room">
 /* Seats are part of the opened room only, never part of the external room directory. */
 #voiceRoomList #voiceSeatsGrid,#voiceRoomList .voice-seats-grid,#voiceRoomList .voice-seat{display:none!important}
