@@ -2121,7 +2121,7 @@ async function postShortVideoComment(videoId,input,button,countNode,listNode){
   const body=input.value.trim();if(!body)return;
   button.disabled=true;
   try{
-    const {error}=await xoraSupabase.from('short_video_comments').insert({video_id:videoId,user_id:xoraUser.id,body});
+    const {data:postedComment,error}=await xoraSupabase.from('short_video_comments').insert({video_id:videoId,user_id:xoraUser.id,body}).select('id').single();
     if(error)throw error;
     input.value='';
     const {count,error:countError}=await xoraSupabase.from('short_video_comments').select('id',{count:'exact',head:true}).eq('video_id',videoId);
@@ -2137,7 +2137,7 @@ async function postShortVideoComment(videoId,input,button,countNode,listNode){
       const textNode=document.createElement('span');textNode.textContent=body;
       row.append(who,textNode);
       const remove=document.createElement('button');remove.type='button';remove.className='shorts-comment-delete';remove.textContent='حذف';
-      remove.onclick=()=>deleteShortVideoComment(null,videoId);row.appendChild(remove);
+      remove.onclick=()=>deleteShortVideoComment(postedComment.id,videoId);row.appendChild(remove);
       listNode.prepend(row);
       while(listNode.children.length>5)listNode.lastElementChild.remove();
     }
