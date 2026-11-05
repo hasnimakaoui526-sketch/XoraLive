@@ -962,7 +962,7 @@ html,body{
  <div class="live-setup-foot">كن لطيفاً، احترم خصوصية الآخرين، واستمتع بوقتك 💜</div>
 </section>
 <section class="screen" id="liveRoomScreen">
- <div class="live-room-top"><button class="back" id="liveLeaveBtn" onclick="leaveLiveRoom()">← مغادرة</button><div class="live-room-heading"><span class="live-now-pill"><i></i> مباشر</span><h2 id="liveRoomTitle">بث مباشر</h2></div><div class="live-room-top-actions"><span class="live-room-brand">XORA</span><button id="liveSupportersToggle" type="button" aria-label="أفضل الداعمين" title="أفضل الداعمين" onclick="toggleLiveSupporters()">🏆</button><div id="liveSupportersPopover"><b>🏆 أفضل الداعمين</b><div id="liveSupporterList" class="xora-muted">جارٍ التحميل…</div></div></div></div>
+ <div class="live-room-top"><button class="back" id="liveLeaveBtn" onclick="leaveLiveRoom()">← مغادرة</button><div class="live-room-heading"><span class="live-now-pill"><i></i> مباشر</span><h2 id="liveRoomTitle">بث مباشر</h2></div><div class="live-room-top-actions"><span id="liveViewerCount" class="live-viewer-count" aria-label="عدد المتفرجين" title="عدد المتفرجين"><span aria-hidden="true">👁</span><b>0</b></span><span class="live-room-brand">XORA</span><button id="liveSupportersToggle" type="button" aria-label="أفضل الداعمين" title="أفضل الداعمين" onclick="toggleLiveSupporters()">🏆</button><div id="liveSupportersPopover"><b>🏆 أفضل الداعمين</b><div id="liveSupporterList" class="xora-muted">جارٍ التحميل…</div></div></div></div>
  <div id="realtimekitRoom" style="background:#120e18"></div>
  
  <div class="live-room-statusbar"><span class="live-status-dot"></span><div id="liveRoomStatus" class="profile-bio">جارٍ الاتصال بالبث…</div></div>
@@ -1216,6 +1216,8 @@ function forceXoraPortraitStage(root){
  setTimeout(()=>{try{observer.disconnect()}catch(_){}},12000);
 }
 
+function updateLiveViewerCount(){const el=document.querySelector('#liveViewerCount b');if(!el||!activeMeeting)return;const remote=Number(activeMeeting.participants?.count??activeMeeting.participants?.joined?.size?.()??0);el.textContent=String(Math.max(0,remote+(activeLiveRole==='viewer'?1:0)));}
+function bindLiveViewerCount(meeting,role){const el=document.querySelector('#liveViewerCount b');if(el)el.textContent=role==='viewer'?'1':'0';const joined=meeting?.participants?.joined;if(joined&&typeof joined.on==='function'){joined.on('participantJoined',updateLiveViewerCount);joined.on('participantLeft',updateLiveViewerCount);}updateLiveViewerCount();}
 async function joinRealtimeKit(authToken,role,stream){
  if(!window.RealtimeKitClient)throw new Error('لم يتم تحميل مشغل RealtimeKit. حدّث الصفحة وحاول مجدداً.');
  if(activeMeeting&&role==='guest'){try{await activeMeeting.leave()}catch(_){}activeMeeting=null}
@@ -1244,6 +1246,7 @@ async function joinRealtimeKit(authToken,role,stream){
  document.getElementById('liveGuestPanel').classList.toggle('show',role==='host');
  const leaveButton=document.getElementById('liveLeaveBtn');if(leaveButton)leaveButton.textContent=role==='host'?'■ إنهاء البث':'← مغادرة';
  showScreen('liveRoomScreen');
+ bindLiveViewerCount(meeting,role);
  if(role==='host'){
   if(meeting.self&&typeof meeting.self.on==='function'){
    meeting.self.on('mediaPermissionError',({message,kind})=>{
@@ -2273,6 +2276,10 @@ async function backToTextRooms(){if(textRoomChannel){await xoraSupabase.removeCh
 
 
 <style id="xora-supporters-topbar-and-fullscreen-stage">
+/* Compact live viewer counter in the top bar */
+#liveRoomScreen .live-viewer-count{display:inline-flex!important;align-items:center;justify-content:center;gap:4px;min-width:38px;height:27px;padding:0 7px;border:1px solid #66506f;border-radius:10px;background:#17111feF;color:#f5e7fa;font-size:11px;line-height:1;white-space:nowrap}
+#liveRoomScreen .live-viewer-count span{font-size:13px}
+#liveRoomScreen .live-viewer-count b{font-size:11px;font-weight:900;font-variant-numeric:tabular-nums}
 /* Supporters move to a compact top-bar icon; video keeps the available screen */
 #liveRoomScreen>.live-room-top{position:absolute!important;top:env(safe-area-inset-top)!important;left:0!important;right:0!important;width:100%!important;min-height:48px!important;height:48px!important;box-sizing:border-box!important;z-index:30!important;background:linear-gradient(180deg,#09070df0,#09070d80)!important;border:0!important;padding:4px 10px!important}
 #liveRoomScreen .live-room-top-actions{position:relative;display:flex;align-items:center;gap:8px;flex:0 0 auto}
