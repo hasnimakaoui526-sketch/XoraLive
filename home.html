@@ -2126,8 +2126,22 @@ async function postShortVideoComment(videoId,input,button,countNode,listNode){
     input.value='';
     const {count,error:countError}=await xoraSupabase.from('short_video_comments').select('id',{count:'exact',head:true}).eq('video_id',videoId);
     if(countError)throw countError;
-    countNode.textContent='💬 '+(count??0)+' تعليق';
-    await loadShortVideos();
+    if(countNode)countNode.textContent='💬 '+(count??0)+' تعليق';
+    /* Update only this video's comment list; rebuilding the feed resets the swipe position to video one. */
+    if(listNode&&listNode.isConnected){
+      const empty=listNode.querySelector('.shorts-no-comments');if(empty)empty.remove();
+      const row=document.createElement('div');row.className='shorts-comment';
+      const who=document.createElement('button');who.type='button';who.className='profile-link';
+      const username=xoraUser.username||xoraUser.user_metadata?.username||'أنت';
+      who.textContent=username;who.onclick=()=>openUserProfile(xoraUser.id,username,xoraUser.avatar_url||'');
+      const textNode=document.createElement('span');textNode.textContent=body;
+      row.append(who,textNode);
+      const remove=document.createElement('button');remove.type='button';remove.className='shorts-comment-delete';remove.textContent='حذف';
+      remove.onclick=()=>deleteShortVideoComment(null,videoId);row.appendChild(remove);
+      listNode.prepend(row);
+      while(listNode.children.length>5)listNode.lastElementChild.remove();
+    }
+    toast('تم نشر تعليقك');
   }catch(error){toast('تعذر نشر التعليق: '+(error.message||'خطأ'))}
   finally{button.disabled=false}
 }
