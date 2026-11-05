@@ -2396,3 +2396,18 @@ async function backToTextRooms(){if(textRoomChannel){await xoraSupabase.removeCh
 #shortVideosScreen .shorts-comment-form input{height:32px!important;min-height:32px!important;padding:4px 11px!important;font-size:12px!important;border:1px solid #ffffff24!important;border-radius:18px!important;background:#1b1722!important}
 #shortVideosScreen .shorts-comment-form button{height:32px!important;min-height:32px!important;padding:0 13px!important;border-radius:18px!important;font-size:11px!important}
 </style>
+
+<style id="xora-hide-live-status-text">
+/* Remove the stray connection/status strip from the live broadcast screen */
+#liveRoomScreen>.live-room-statusbar,
+#liveRoomScreen #liveRoomStatus,
+#liveRoomScreen .live-status-dot{
+  display:none!important;
+  visibility:hidden!important;
+  height:0!important;
+  min-height:0!important;
+  max-height:0!important;
+  margin:0!important;
+  padding:0!important;
+}
+</style>
