@@ -1287,6 +1287,36 @@ async function endRealLive(){if(!activeLiveStream)return;const btn=document.getE
 async function joinRealLive(streamId){if(!xoraUser){openAuth();return}try{const result=await xoraLiveRequest({action:'join',stream_id:streamId});await joinRealtimeKit(result.authToken,'viewer',result.stream)}catch(e){toast('تعذر الانضمام: '+e.message)}}
 async function leaveLiveRoom(){if(activeLiveRole==='host'){await endRealLive();return}try{if(activeMeeting?.leave)await activeMeeting.leave()}catch(_){}activeMeeting=null;activeLiveRole=null;await clearLiveRoomComments();goHome()}
 async function loadRealFeaturedHosts(){const root=document.getElementById('realFeaturedHosts');if(!root)return;const {data,error}=await xoraSupabase.from('profiles').select('id,username,avatar_url,profile_badge,vip_until').or('profile_badge.not.is.null,vip_until.gt.'+new Date().toISOString()).order('created_at',{ascending:false}).limit(50);root.innerHTML='';if(error){root.textContent='تعذر تحميل المذيعين المميزين: '+error.message;return}const featured=(data||[]).filter(u=>String(u.profile_badge||'').trim()!==''||(u.vip_until&&new Date(u.vip_until)>new Date()));if(!featured.length){root.innerHTML='<div class="profile-bio">لا يوجد مذيعون مميزون حالياً. ستظهر الحسابات هنا تلقائياً بعد حصولها على شارة التميّز أو VIP.</div>';return}for(const u of featured){const item=document.createElement('button');item.type='button';item.className='host';const wrap=document.createElement('span');wrap.className='avatar-wrap';const img=document.createElement('img');img.src=u.avatar_url||'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22%3E%3Crect width=%2264%22 height=%2264%22 rx=%2232%22 fill=%22%23302139%22/%3E%3Ctext x=%2232%22 y=%2242%22 text-anchor=%22middle%22 font-size=%2228%22 fill=%22%23e8c98b%22%3E✦%3C/text%3E%3C/svg%3E';img.alt=u.username||'مذيع مميز';wrap.appendChild(img);const name=document.createElement('span');name.className='featured-host-name';name.textContent=u.username||'مستخدم';item.append(wrap,name);const small=document.createElement('small');small.className='featured-host-badge';small.textContent=u.profile_badge||'VIP';item.appendChild(small);item.addEventListener('click',()=>openRealProfile(u));root.appendChild(item)}}
+
+let xoraHomeOnlineUsers=[];
+async function loadHomeOnlineUsers(){
+ const root=document.getElementById('homeOnlineUsers');if(!root||!xoraUser)return;
+ root.innerHTML='<div class="home-online-empty">جارٍ تحديث قائمة المتواجدين…</div>';
+ const since=new Date(Date.now()-120000).toISOString();
+ const {data,error}=await xoraSupabase.from('profiles').select('id,username,avatar_url,bio,level,badge,profile_badge,vip_until,last_seen,cover_url').gte('last_seen',since).order('last_seen',{ascending:false}).limit(80);
+ if(error){root.innerHTML='<div class="home-online-empty">تعذر تحميل المتواجدين حالياً.</div>';return}
+ xoraHomeOnlineUsers=(data||[]).filter(u=>u.last_seen&&Date.now()-new Date(u.last_seen).getTime()<120000);
+ const count=document.getElementById('homeOnlineCount');if(count)count.textContent=xoraHomeOnlineUsers.length.toLocaleString('ar');
+ filterHomeOnlineUsers();
+}
+function filterHomeOnlineUsers(){
+ const root=document.getElementById('homeOnlineUsers');if(!root)return;
+ const q=(document.getElementById('homeOnlineSearch')?.value||'').trim().toLocaleLowerCase();
+ const users=xoraHomeOnlineUsers.filter(u=>(u.username||'مستخدم').toLocaleLowerCase().includes(q));
+ root.innerHTML='';
+ if(!users.length){root.innerHTML='<div class="home-online-empty">'+(q?'لا يوجد مستخدم متصل بهذا الاسم.':'لا يوجد مستخدمون متصلون الآن.')+'</div>';return}
+ users.forEach(u=>{
+  const card=document.createElement('button');card.type='button';card.className='home-online-user';
+  const img=document.createElement('img');img.src=u.avatar_url||'https://placehold.co/100x100/211a2a/e8c98b?text=X';img.alt='';
+  const copy=document.createElement('span');copy.className='home-online-user-copy';
+  const name=document.createElement('b');name.textContent=u.username||'مستخدم';
+  const status=document.createElement('small');status.textContent='متصل الآن · مستوى '+(u.level||1);
+  copy.append(name,status);card.append(img,copy);
+  if(u.profile_badge||u.vip_until&&new Date(u.vip_until)>new Date()){const vip=document.createElement('span');vip.textContent='✦';vip.style.color='#e8c98b';card.append(vip)}
+  card.addEventListener('click',()=>openRealProfile(u));root.append(card);
+ });
+}
+
 async function loadLiveStreams(){const root=document.getElementById('realLiveStreams');if(!root)return;await loadRealFeaturedHosts();const {data,error,count}=await xoraSupabase.from('streams').select('id,host_user_id,title,started_at',{count:'exact'}).eq('status','live').order('started_at',{ascending:false}).limit(30);root.innerHTML='';if(error){root.textContent='تعذر تحميل البثوث: '+error.message;return}const liveCount=document.getElementById('liveCount');if(liveCount)liveCount.textContent=String(count??data?.length??0);if(!data?.length){root.innerHTML='<div class="profile-bio">لا توجد بثوث حقيقية مباشرة حالياً. ستظهر هنا تلقائياً عندما يبدأ أحد المستخدمين بثاً فعلياً.</div>';return}const ids=[...new Set(data.map(x=>x.host_user_id))];const p=await xoraSupabase.from('profiles').select('id,username,avatar_url').in('id',ids);if(p.error){root.textContent='تعذر تحميل حسابات المذيعين: '+p.error.message;return}const users=Object.fromEntries((p.data||[]).map(x=>[x.id,x]));for(const stream of data){const u=users[stream.host_user_id]||{};const card=document.createElement('article');card.className='stream';card.style.minHeight='170px';card.dataset.name=u.username||'';card.dataset.hostId=stream.host_user_id;card.innerHTML='<div class="live-tag">● LIVE</div><div class="stream-info"><strong></strong><small></small><button class="gift" style="margin-top:9px">مشاهدة البث</button></div>';if(u.avatar_url){const avatar=document.createElement('img');avatar.src=u.avatar_url;avatar.alt='';card.prepend(avatar)}card.querySelector('strong').textContent=u.username||'مذيع Xora';card.querySelector('small').textContent=stream.title||'بث مباشر';card.style.cursor='pointer';card.setAttribute('role','button');card.setAttribute('tabindex','0');const enterStream=()=>joinRealLive(stream.id);card.addEventListener('click',enterStream);card.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();enterStream()}});card.querySelector('button').onclick=event=>{event.stopPropagation();enterStream()};root.appendChild(card)}if(activeFilter==='follow')await filterFollowStreams(true);else filterStreams()}
 async function openDiscover(){if(!xoraUser){openAuth();return}showScreen('discoverScreen');await loadDiscover()}
 async function loadOnlineFriends(){if(!xoraUser)return;const root=document.getElementById('discoverList');root.textContent='جارٍ تحميل الأصدقاء المتصلين…';const {data:f,error}=await xoraSupabase.from('follows').select('following_id').eq('follower_id',xoraUser.id);if(error){root.textContent=error.message;return}const ids=(f||[]).map(x=>x.following_id);if(!ids.length){root.textContent='لا تتابع أحداً بعد.';return}const {data,error:pErr}=await xoraSupabase.from('profiles').select('id,username,avatar_url,bio,level,badge,profile_badge,vip_until,last_seen,cover_url').in('id',ids).gte('last_seen',new Date(Date.now()-120000).toISOString()).order('last_seen',{ascending:false});root.innerHTML='';if(pErr){root.textContent=pErr.message;return}if(!data?.length){root.textContent='لا يوجد من تتابعهم متصلاً الآن.';return}data.forEach(u=>{const row=document.createElement('div');row.className='xora-row';const info=document.createElement('span');info.textContent='🟢 '+u.username+' · مستوى '+(u.level||1)+(u.vip_until&&new Date(u.vip_until)>new Date()?' · VIP':'');const b=document.createElement('button');b.className='xora-action';b.textContent='عرض الملف';b.onclick=()=>openRealProfile(u);row.append(info,b);root.appendChild(row)})}
@@ -2410,4 +2440,25 @@ async function backToTextRooms(){if(textRoomChannel){await xoraSupabase.removeCh
   margin:0!important;
   padding:0!important;
 }
+</style>
+
+<style id="xora-home-online-users">
+.home-online-section{margin:10px 0 18px;padding:13px;border:1px solid #49334f;border-radius:18px;background:linear-gradient(145deg,#211729,#110d18);box-shadow:0 9px 25px #0003}
+.home-online-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:11px}
+.home-online-head h2{margin:0 0 3px;font-size:15px;color:#f3dfb9}
+.home-online-head small{font-size:10px;color:#aa9bb4}
+.home-online-head small b{color:#91e4ae;font-size:12px}
+.home-online-head>button{border:1px solid #62496e;border-radius:10px;background:#2a1d33;color:#ead5f2;padding:7px 10px;font-size:10px}
+.home-online-search{display:flex;align-items:center;gap:8px;padding:9px 11px;margin-bottom:10px;border:1px solid #3e3049;border-radius:12px;background:#100c16}
+.home-online-search span{color:#c9a8dc;font-size:18px}
+.home-online-search input{flex:1;min-width:0;border:0;outline:0;background:transparent;color:#fff;font:inherit;font-size:11px}
+.home-online-users{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;max-height:290px;overflow:auto;overscroll-behavior:contain}
+.home-online-user{display:flex;align-items:center;gap:8px;min-width:0;padding:8px;border:1px solid #ffffff12;border-radius:13px;background:linear-gradient(135deg,#2a2033,#191320);color:#fff;text-align:right;cursor:pointer}
+.home-online-user img{width:39px;height:39px;flex:0 0 39px;object-fit:cover;border:1px solid #8e6b9d;border-radius:50%}
+.home-online-user-copy{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1}
+.home-online-user-copy b{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.home-online-user-copy small{font-size:9px;color:#9be0ae}
+.home-online-user-copy small:before{content:"";display:inline-block;width:6px;height:6px;margin-left:4px;border-radius:50%;background:#61dc91;box-shadow:0 0 7px #61dc91}
+.home-online-empty{grid-column:1/-1;padding:15px 8px;text-align:center;color:#a99eaf;font-size:11px}
+@media(max-width:360px){.home-online-users{grid-template-columns:1fr}.home-online-user{padding:7px}}
 </style>
