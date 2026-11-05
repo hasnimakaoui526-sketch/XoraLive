@@ -749,6 +749,8 @@ html,body{
 </style>
 
 <style id="xora-owner-dm-full-chat">
+/* Keep the messages panel free of transform animations: a transformed ancestor traps fixed chat overlays and can make the conversation appear blank on mobile. */
+#ownerScreen .xoc-panel[data-owner-panel="messages"]{animation:none!important;transform:none!important;will-change:auto!important}
 #ownerScreen #ownerDmThreadPanel[style*="display: block"]{position:fixed!important;inset:0!important;z-index:10050!important;display:flex!important;flex-direction:column!important;gap:9px!important;margin:0!important;padding:calc(env(safe-area-inset-top) + 12px) 12px calc(env(safe-area-inset-bottom) + 12px)!important;background:radial-gradient(ellipse at 15% 0%,rgba(126,75,158,.22),transparent 40%),#0d0b13!important;overflow:hidden!important;border:0!important;border-radius:0!important}
 #ownerScreen .owner-dm-chat-head{display:flex;align-items:center;gap:10px;flex:0 0 auto;min-height:48px}
 #ownerScreen .owner-dm-chat-head b{font-size:14px;line-height:1.5;overflow-wrap:anywhere}
